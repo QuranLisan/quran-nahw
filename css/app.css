@@ -1,0 +1,417 @@
+/* ============================================================
+   نحوِ قرآن — worksheet builder
+   Palette borrowed from the manuscript page: lapis rule, ochre
+   gold, rag-white paper. The signature is the جدول frame — the
+   ruled text-block that leaves the margin free for the reader's
+   own hand. That is literally what this tool is for.
+   ============================================================ */
+
+@font-face {
+  font-family: "QuranIndoPak";
+  src: url("../fonts/quran-indopak.woff2") format("woff2"),
+       url("../fonts/quran-indopak.ttf") format("truetype");
+  font-display: block;
+}
+
+:root {
+  --lapis-950: #0f1a31;
+  --lapis-900: #16233f;
+  --lapis-800: #1d2e52;
+  --lapis-700: #24365c;
+  --lapis-600: #33508a;
+  --lapis-400: #6e8abf;
+  --lapis-200: #b9c6de;
+
+  --gold: #b58a3c;
+  --gold-lt: #d9b368;
+
+  --paper: #ffffff;
+  --ink: #141414;
+  --ink-soft: #5d6470;
+  --rule: #b6bcc5;
+  --rule-soft: #d2d7de;
+  --rowh: 66px;
+
+  --urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Nafees Nastaleeq",
+          "Alvi Nastaleeq", serif;
+  --lat: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, monospace;
+  --quran: "QuranIndoPak", "Noto Nastaliq Urdu", serif;
+
+  --fs: 30px;
+  --sheet-w: 794px;
+  --sheet-pad: 16mm;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--urdu);
+  background: var(--lapis-950);
+  color: var(--lapis-200);
+  line-height: 2;
+  -webkit-text-size-adjust: 100%;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- top bar ---------- */
+
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 18px;
+  background: var(--lapis-900);
+  border-bottom: 1px solid var(--lapis-700);
+}
+
+.wordmark {
+  margin: 0; font-size: 21px; font-weight: 500;
+  color: #fff; line-height: 1.6;
+  display: flex; align-items: baseline; gap: 10px;
+}
+.wordmark-sub {
+  font-family: var(--lat); font-size: 9.5px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--gold-lt); line-height: 1;
+}
+
+.topbar-actions { margin-inline-start: auto; display: flex; gap: 8px; }
+
+/* ---------- buttons & fields ---------- */
+
+.btn {
+  font-family: var(--urdu); font-size: 15px; line-height: 1.9;
+  padding: 5px 16px; border-radius: 3px; cursor: pointer;
+  border: 1px solid transparent; transition: background .15s, border-color .15s;
+}
+.btn-gold { background: var(--gold); color: #16130c; border-color: var(--gold-lt); }
+.btn-gold:hover { background: var(--gold-lt); }
+.btn-ghost { background: transparent; color: var(--lapis-200); border-color: var(--lapis-600); }
+.btn-ghost:hover { background: var(--lapis-800); }
+.btn-quiet {
+  background: var(--lapis-800); color: var(--lapis-200);
+  border-color: var(--lapis-700); align-self: end; height: 34px; padding: 0 12px;
+}
+.btn-quiet:hover { border-color: var(--lapis-600); }
+
+.icon-btn {
+  background: transparent; border: 1px solid var(--lapis-700); color: var(--lapis-200);
+  width: 34px; height: 34px; border-radius: 3px; cursor: pointer; font-size: 15px;
+}
+.icon-btn:hover { background: var(--lapis-800); }
+
+:where(button, select, input, [contenteditable]):focus-visible {
+  outline: 2px solid var(--gold-lt); outline-offset: 2px;
+}
+
+/* ---------- shell ---------- */
+
+.shell {
+  display: grid;
+  grid-template-columns: 328px minmax(0, 1fr);
+  height: calc(100dvh - 55px);
+}
+.shell.collapsed { grid-template-columns: 0 minmax(0, 1fr); }
+.shell.collapsed .panel { display: none; }
+
+.panel {
+  overflow-y: auto;
+  padding: 4px 18px 40px;
+  background: var(--lapis-900);
+  border-inline-start: 1px solid var(--lapis-700);
+}
+
+.group { padding: 18px 0; border-bottom: 1px solid var(--lapis-800); }
+.group:last-of-type { border-bottom: 0; }
+
+.group-title {
+  margin: 0 0 12px; font-size: 16px; font-weight: 500; color: #fff;
+  display: flex; align-items: baseline; gap: 8px;
+}
+.group-title .lat,
+.field .label .lat {
+  font-family: var(--lat); font-size: 9px; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--lapis-400);
+}
+
+.field { display: block; margin-bottom: 12px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field .label {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 14px; color: var(--lapis-200); line-height: 1.9; margin-bottom: 3px;
+}
+
+select, input[type="number"] {
+  width: 100%; height: 34px; padding: 0 8px;
+  background: var(--lapis-950); color: #fff;
+  border: 1px solid var(--lapis-700); border-radius: 3px;
+  font-family: var(--urdu); font-size: 15px;
+}
+input[type="number"] { font-family: var(--lat); font-size: 14px; }
+
+input[type="range"] { width: 100%; accent-color: var(--gold); }
+output { font-family: var(--lat); font-size: 12px; color: var(--gold-lt); }
+
+.check {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 14.5px; cursor: pointer; padding: 3px 0;
+}
+.check input { accent-color: var(--gold); width: 16px; height: 16px; }
+
+.choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice-grid button {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 9px 10px; cursor: pointer; text-align: start;
+  background: var(--lapis-950); border: 1px solid var(--lapis-700);
+  border-radius: 3px; color: var(--lapis-200);
+  font-family: var(--urdu); font-size: 15px; line-height: 1.7;
+}
+.choice-grid button em {
+  font-style: normal; font-size: 11.5px; color: var(--lapis-400); line-height: 1.7;
+}
+.choice-grid button:hover { border-color: var(--lapis-600); }
+.choice-grid button[aria-checked="true"] {
+  border-color: var(--gold); background: var(--lapis-800); color: #fff;
+}
+.choice-grid button[aria-checked="true"] em { color: var(--gold-lt); }
+
+.note, .panel-foot {
+  font-size: 12.5px; color: var(--lapis-400); line-height: 1.9; margin: 6px 0 0;
+}
+.panel-foot { font-family: var(--lat); font-size: 10.5px; letter-spacing: .04em; }
+
+.credit {
+  margin: 14px 0 0; padding-top: 12px;
+  border-top: 1px solid var(--lapis-800);
+  font-size: 11.5px; line-height: 2; color: var(--lapis-400);
+}
+.credit strong { color: var(--lapis-200); font-weight: 400; }
+.credit code {
+  font-family: var(--lat); font-size: 10px; direction: ltr;
+  display: inline-block; color: var(--lapis-200);
+}
+
+[hidden] { display: none !important; }
+.field.off, .check.off { display: none; }
+
+/* ---------- stage ---------- */
+
+.stage {
+  overflow: auto; padding: 26px 18px 60px;
+  background:
+    radial-gradient(1100px 500px at 50% -10%, var(--lapis-900), var(--lapis-950));
+}
+
+/* ---------- the sheet: signature جدول frame ---------- */
+
+.sheet {
+  width: var(--sheet-w); max-width: 100%; margin: 0 auto;
+  background: var(--paper); color: var(--ink);
+  padding: var(--sheet-pad);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .45);
+  animation: rise .25s ease-out;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+
+.jadwal {
+  border: 1px solid var(--gold);
+  padding: 5px;
+  margin-bottom: 20px;
+}
+.jadwal-in {
+  border: 1px solid var(--lapis-900);
+  padding: 12px 16px 14px;
+}
+
+.sheet-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+}
+.sheet-title { font-family: var(--quran); font-size: 26px; color: var(--lapis-900); }
+.sheet-ref {
+  font-family: var(--lat); font-size: 11px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--gold);
+}
+.sheet-kind { font-size: 14px; color: var(--ink-soft); line-height: 1.8; }
+
+.surah-mark {
+  display: flex; align-items: baseline; gap: 12px;
+  margin: 6px 0 16px; padding: 3px 10px;
+  border-top: 2px solid var(--gold); border-bottom: 1px solid var(--gold);
+  break-after: avoid; break-inside: avoid;
+}
+.surah-mark .nm {
+  font-family: var(--quran); font-size: 22px; color: var(--lapis-900);
+}
+.surah-mark .no {
+  font-family: var(--lat); font-size: 11px; letter-spacing: .16em;
+  color: var(--gold); margin-inline-start: auto;
+}
+
+/* ---------- ayah blocks ---------- */
+
+.ayah { margin-bottom: 22px; break-inside: avoid; }
+.ayah.brk { break-after: page; }
+
+.ayah-head {
+  display: flex; align-items: baseline; gap: 10px;
+  border-bottom: 1px solid var(--lapis-900); padding-bottom: 4px; margin-bottom: 10px;
+}
+.ayah-no {
+  /* plain font on purpose: keeps the Quran font's calt from turning
+     the number into a medallion glyph */
+  font-family: Arial, "Segoe UI", sans-serif;
+  font-size: 15px; color: var(--gold); line-height: 1;
+}
+.ayah-tag {
+  font-family: var(--lat); font-size: 9.5px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--ink-soft); margin-inline-start: auto;
+}
+
+.ayah-full {
+  font-family: var(--quran); font-size: var(--fs); line-height: 2.35;
+  text-align: justify; color: var(--ink); margin-bottom: 12px;
+}
+.ayah-full .num {
+  font-family: Arial, "Segoe UI", sans-serif;
+  font-size: .48em; color: var(--gold); padding: 0 .25em;
+}
+
+/* --- layout: خانہ (word cells) --- */
+.wgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 9px; }
+.wcell { border: 1px solid var(--rule); padding: 5px 9px 7px; break-inside: avoid; }
+.wcell .w {
+  font-family: var(--quran); font-size: var(--fs); line-height: 1.9;
+  text-align: center; color: var(--ink);
+  border-bottom: 1px solid var(--rule-soft); padding-bottom: 3px; margin-bottom: 5px;
+}
+.wcell .idx {
+  font-family: var(--lat); font-size: 9px; color: var(--gold); line-height: 1;
+}
+
+/* --- layout: جدول (table) --- */
+table.tarkeeb { width: 100%; border-collapse: collapse; }
+table.tarkeeb thead { display: table-header-group; }
+table.tarkeeb th {
+  background: var(--lapis-900); color: #fff;
+  font-family: var(--urdu); font-size: 14px; font-weight: 500; line-height: 2;
+  padding: 3px 8px; border: 1px solid var(--lapis-900);
+}
+table.tarkeeb td {
+  border: 1px solid var(--rule); padding: 4px 8px; vertical-align: middle;
+}
+table.tarkeeb td.c-num {
+  font-family: var(--lat); font-size: 11px; color: var(--ink-soft);
+  text-align: center; width: 34px;
+}
+table.tarkeeb td.c-word {
+  font-family: var(--quran); font-size: var(--fs); line-height: 1.9;
+  text-align: center; width: 26%; white-space: nowrap;
+}
+table.tarkeeb td.c-mani {
+  font-family: var(--urdu); font-size: 15px; line-height: 2; width: 20%;
+}
+table.tarkeeb tr { break-inside: avoid; }
+.hand table.tarkeeb tbody tr { height: var(--rowh); }
+
+/* --- ruled writing space --- */
+.rules > .rl { border-bottom: 1px solid var(--rule); height: 1.55em; }
+.rules.tight > .rl { height: 1.25em; }
+.wcell .rules > .rl { border-bottom-color: var(--rule-soft); }
+
+/* --- layout: شجرہ (diagram field) --- */
+.field-box { border: 1px solid var(--rule); position: relative; }
+.field-box svg { display: block; width: 100%; height: 100%; }
+
+/* --- typing mode --- */
+.te {
+  min-height: 1.7em; padding: 2px 4px;
+  font-family: var(--urdu); font-size: 15px; line-height: 2; color: var(--ink);
+  border-bottom: 1px dashed var(--rule);
+  outline: none; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.te:empty::before { content: attr(data-ph); color: #b6bbc3; }
+.te:focus { background: #fdf7e8; border-bottom-color: var(--gold); }
+td .te { border-bottom: 0; min-height: 2.4em; }
+.te.big { min-height: 6em; border: 1px dashed var(--rule); border-radius: 2px; }
+
+.empty {
+  padding: 60px 20px; text-align: center; color: var(--ink-soft); font-size: 15px;
+}
+.empty code {
+  font-family: var(--lat); font-size: 12.5px;
+  background: #f2f3f5; padding: 2px 6px; border-radius: 3px; direction: ltr;
+  display: inline-block;
+}
+
+/* ---------- importer ---------- */
+
+.import { padding: 46px 30px 56px; text-align: center; }
+.import h2 {
+  margin: 0 0 8px; font-size: 22px; font-weight: 500; color: var(--lapis-900);
+}
+.im-lead {
+  margin: 0 auto; max-width: 44ch; font-size: 15px; color: var(--ink-soft);
+}
+.im-drop {
+  display: block; max-width: 440px; margin: 26px auto 12px;
+  padding: 32px 20px; cursor: pointer;
+  border: 2px dashed var(--rule); border-radius: 3px;
+  transition: border-color .15s, background .15s;
+}
+.im-drop:hover, .im-drop:focus-visible { border-color: var(--lapis-600); }
+.im-drop.over { border-color: var(--gold); background: #fdf7e8; }
+.im-drop.busy { opacity: .55; pointer-events: none; }
+.im-icon { display: block; font-size: 26px; color: var(--gold); line-height: 1.4; }
+.im-cta { display: block; font-size: 17px; color: var(--lapis-900); }
+.im-hint { display: block; font-size: 13px; color: var(--ink-soft); }
+.im-status { min-height: 2.2em; font-size: 14px; color: var(--ink-soft); margin: 0; }
+.im-status.ok { color: #1c6b41; }
+.im-status.bad { color: #a3312b; }
+.im-help {
+  max-width: 500px; margin: 14px auto 0; text-align: start;
+  font-size: 14px; color: var(--ink-soft);
+}
+.im-help summary { cursor: pointer; color: var(--lapis-600); }
+.im-help p { margin: 8px 0; }
+
+.import code, .note code, .empty code {
+  font-family: var(--lat); font-size: 12.5px; direction: ltr;
+  display: inline-block; padding: 1px 5px; border-radius: 3px;
+  background: rgba(110, 138, 191, .16);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; height: auto; }
+  .panel {
+    border-inline-start: 0; border-bottom: 1px solid var(--lapis-700);
+    max-height: 62dvh;
+  }
+  .shell.collapsed { grid-template-columns: 1fr; }
+  .stage { padding: 18px 10px 50px; }
+  .sheet { --sheet-pad: 10mm; }
+}
+
+/* ---------- print ---------- */
+
+@media print {
+  .topbar, .panel, .import { display: none !important; }
+  body { background: #fff; color: #000; }
+  .shell { display: block; height: auto; }
+  .stage { padding: 0; background: #fff; overflow: visible; }
+  .sheet {
+    width: auto; max-width: none; margin: 0; padding: 0;
+    box-shadow: none; animation: none;
+  }
+  .te { border-bottom-color: var(--rule); background: none; }
+  .te:empty::before { content: ""; }
+  .ayah { break-inside: avoid; }
+}
