@@ -32,6 +32,7 @@
   --rule-soft: #d2d7de;
   --rule-write: #dadee4;   /* ruled writing guides — deliberately faint */
   --rowh: 66px;
+  --cols: 4;
 
   --ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Nafees Nastaleeq",
@@ -270,9 +271,11 @@ output { font-family: var(--lat); font-size: 12px; color: var(--gold-lt); }
 /* ---------- ayah blocks ---------- */
 
 .ayah { margin-bottom: 22px; break-inside: avoid; }
+.ayah-inner { display: block; }
 .ayah.brk { break-after: page; }
 
 .ayah-head {
+  break-after: avoid;
   display: flex; align-items: baseline; gap: 10px;
   border-bottom: 1px solid var(--lapis-900); padding-bottom: 4px; margin-bottom: 10px;
 }
@@ -288,6 +291,7 @@ output { font-family: var(--lat); font-size: 12px; color: var(--gold-lt); }
 }
 
 .ayah-full {
+  break-inside: avoid; break-after: avoid;
   font-family: var(--quran); font-size: var(--fs); line-height: 2.35;
   text-align: justify; color: var(--ink); margin-bottom: 12px;
 }
@@ -297,8 +301,10 @@ output { font-family: var(--lat); font-size: 12px; color: var(--gold-lt); }
 }
 
 /* --- layout: خانہ (word cells) --- */
-.wgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 9px; }
-.wcell { border: 1px solid var(--rule); padding: 5px 9px 7px; break-inside: avoid; }
+.wgrid { display: block; font-size: 0; margin-bottom: -9px; }
+.wcell-wrap { display: inline-block; width: calc(100% / var(--cols)); padding: 0 0 9px 9px; }
+.wcell { border: 1px solid var(--rule); padding: 5px 9px 7px;
+  break-inside: avoid; font-size: 1rem; }
 .wcell .w {
   font-family: var(--quran); font-size: var(--fs); line-height: 1.9;
   text-align: center; color: var(--ink);

@@ -89,6 +89,11 @@
         <input id="lines" type="range" min="1" max="8" step="1" value="3">
       </label>
 
+      <label class="field" data-for="grid">
+        <span class="label">Columns <output id="colsOut">4</output></span>
+        <input id="cols" type="range" min="2" max="6" step="1" value="4">
+      </label>
+
       <label class="check" data-for="table">
         <input id="colMeaning" type="checkbox" checked>
         <span>Meaning column</span>
@@ -107,6 +112,11 @@
       <label class="check">
         <input id="onePer" type="checkbox">
         <span>Each ayah on a new page</span>
+      </label>
+
+      <label class="check">
+        <input id="fitPage" type="checkbox" checked>
+        <span>Shrink oversized ayat to fit</span>
       </label>
     </section>
 

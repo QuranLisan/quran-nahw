@@ -147,6 +147,23 @@ fonts/                  your TTF goes here
 
 ---
 
+## Getting a clean PDF
+
+Ayat vary enormously in length, so a worksheet block can easily outgrow a
+sheet of paper. Three controls decide how the pages come out:
+
+- **Columns** (word-box layout) — more columns means shorter blocks. Six
+  columns roughly halves the height of two.
+- **Writing lines** — the single biggest driver of block height.
+- **Shrink oversized ayat to fit** (on by default) — any block still taller
+  than the page is scaled down to exactly one page rather than being sliced
+  across two. Nothing is ever cut in half.
+- **Each ayah on a new page** — combine with the above and you get exactly one
+  page per ayah, no matter how long each one is.
+
+Ayah headings are pinned to their content, so a heading never lands alone at
+the foot of a page.
+
 ## Notes
 
 - **Changes not showing up?** The service worker is serving the old copy. Bump

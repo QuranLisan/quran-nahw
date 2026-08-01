@@ -72,6 +72,8 @@ const S = {
   showNums: true,
   noWaqf: true,
   onePer: false,
+  fitPage: true,
+  cols: 4,
   paper: 'A4',
   orient: 'portrait',
 };
@@ -134,12 +136,12 @@ function renderAyah(s, a) {
 
   if (S.layout === 'grid') {
     body = '<div class="wgrid">' + w.map((word, i) => `
-      <div class="wcell">
+      <div class="wcell-wrap"><div class="wcell">
         <div class="idx">${i + 1}</div>
         <div class="w">${esc(stripWaqf(word))}</div>
         ${typing ? editable(`${s}:${n}:${i}:note`, '')
                  : ruled(S.lines)}
-      </div>`).join('') + '</div>';
+      </div></div>`).join('') + '</div>';
 
   } else if (S.layout === 'table') {
     const head = `<tr><th>#</th><th>Word</th><th>Sarf</th>
@@ -174,7 +176,7 @@ function renderAyah(s, a) {
 
   return `<section class="ayah${inkable ? ' inkable' : ''}"`
     + (inkable ? ` data-key="${s}:${n}"` : '')
-    + `>${ayahHead(s, n)}${body}</section>`;
+    + `><div class="ayah-inner">${ayahHead(s, n)}${body}</div></section>`;
 }
 
 async function render() {
@@ -242,6 +244,8 @@ async function render() {
     blocks.forEach((b, i) => { if (i < blocks.length - 1) b.classList.add('brk'); });
   }
 
+  fitBlocks();
+
   if (S.mode === 'draw') Draw.attach(sheet); else Draw.detach();
 
   $('#status').textContent = S.mode === 'draw'
@@ -269,6 +273,31 @@ function adoptBundle(b) {
 }
 
 /* ---------- page geometry ---------- */
+function pageContentPx() {
+  const [pw, ph] = PAPER[S.paper];
+  const H = S.orient === 'landscape' ? pw : ph;
+  return H - 2 * (MARGIN_MM * 96 / 25.4);
+}
+
+/* An ayah taller than the page cannot be kept whole, so it gets scaled
+   down to fit instead of being sliced across two sheets. */
+function fitBlocks() {
+  const max = pageContentPx() - 2;
+  for (const el of $('#sheet').querySelectorAll('.ayah')) {
+    const inner = el.querySelector('.ayah-inner');
+    if (!inner) continue;
+    inner.style.transform = ''; inner.style.width = ''; el.style.height = '';
+    if (!S.fitPage) continue;
+    const h = inner.getBoundingClientRect().height;
+    if (h > max) {
+      const k = max / h;
+      inner.style.transformOrigin = 'top right';
+      inner.style.transform = `scale(${k})`;
+      inner.style.width = (100 / k) + '%';
+      el.style.height = max + 'px';
+    }
+  }
+}
 function applyPaper() {
   const [w, h] = PAPER[S.paper];
   const width = S.orient === 'landscape' ? h : w;
@@ -280,6 +309,7 @@ function applyPaper() {
 
 function applyFont() {
   document.documentElement.style.setProperty('--fs', `${S.fontSize}px`);
+  document.documentElement.style.setProperty('--cols', S.cols);
   document.documentElement.style.setProperty(
     '--rowh', `${Math.max(44, S.lines * 24)}px`);
 }
@@ -393,7 +423,12 @@ function wire() {
   });
   $('#lines').addEventListener('change', () => refresh());
 
-  for (const id of ['colMeaning', 'showNums', 'onePer', 'noWaqf']) {
+  $('#cols').addEventListener('input', (e) => {
+    S.cols = +e.target.value; $('#colsOut').textContent = S.cols; applyFont();
+  });
+  $('#cols').addEventListener('change', () => refresh());
+
+  for (const id of ['colMeaning', 'showNums', 'onePer', 'noWaqf', 'fitPage']) {
     $(`#${id}`).addEventListener('change', (e) => {
       S[id] = e.target.checked; refresh();
     });
@@ -476,6 +511,7 @@ function wire() {
   });
 
   $('#printBtn').addEventListener('click', async () => {
+    fitBlocks();
     if (S.mode === 'draw') {
       await Draw.flush();
       Draw.mountAll($('#sheet'));
@@ -556,6 +592,9 @@ function wire() {
   $('#colMeaning').checked = S.colMeaning;
   $('#showNums').checked = S.showNums;
   $('#onePer').checked = S.onePer;
+  $('#fitPage').checked = S.fitPage;
+  $('#cols').value = S.cols;
+  $('#colsOut').textContent = S.cols;
   $('#noWaqf').checked = S.noWaqf;
   $('#paper').value = S.paper;
   $('#orient').value = S.orient;
