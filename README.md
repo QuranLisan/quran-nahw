@@ -1,4 +1,4 @@
-# نحوِ قرآن — Quran Nahw Worksheet App
+# Quran Nahw — Worksheet App
 
 A progressive web app that turns any range of Quranic text into a worksheet —
 either blank for handwriting with the S Pen, or with typing fields that save
@@ -42,7 +42,7 @@ Surah names, verse counts, and all 30 juz boundaries come from QuranWBW's
 
 The bundled text is the **Madinah** IndoPak variant. If you want **Hanafi
 (QUL script #59)** — the one paired with font #242 — it isn't published
-anywhere I could reach, so import it yourself: panel → **اپنا QUL ڈیٹابیس** →
+anywhere I could reach, so import it yourself: panel → **Import QUL file** →
 pick your `.db`. It parses in the browser via sql.js (bundled in `vendor/`),
 nothing uploads, and it replaces the bundled text permanently.
 
@@ -75,26 +75,26 @@ Print to paper works identically — same dialog, pick your printer.
 
 | | | |
 |---|---|---|
-| **خانہ** | each word in its own box with ruled space beneath | word-level صرفی/نحوی drill |
-| **جدول** | table: # \| کلمہ \| تحلیلِ صرفی \| ترکیبِ نحوی \| معنی | systematic full-ayah analysis |
-| **سطریں** | full ayah, then ruled lines | continuous prose ترکیب |
-| **شجرہ** | full ayah, then a dot-grid field | drawing tarkeeb trees |
+| **Word boxes** | each word in its own box with ruled space beneath | word-level صرفی/نحوی drill |
+| **Table** | table: # \| کلمہ \| تحلیلِ صرفی \| ترکیبِ نحوی \| معنی | systematic full-ayah analysis |
+| **Lines** | full ayah, then ruled lines | continuous prose ترکیب |
+| **Diagram** | full ayah, then a dot-grid field | drawing tarkeeb trees |
 
 ## Three ways to work
 
-The **کاغذ / قلم / ٹائپنگ** switch applies to all four layouts.
+The **Paper / Pen / Type** switch applies to all four layouts.
 
-**کاغذ** leaves the space blank. Print or save as PDF and write on it in
+**Paper** leaves the space blank. Print or save as PDF and write on it in
 Samsung Notes. Unchanged from before.
 
-**قلم** puts a drawing canvas over each ayah so you can write directly in the
+**Pen** puts a drawing canvas over each ayah so you can write directly in the
 app with the S Pen. A toolbar appears at the bottom: four colours (red first,
 since that's the usual i'rab ink), three nib widths, eraser, undo, and clear.
 
 Pen and mouse draw; a finger scrolls the page instead, so your palm won't leave
 marks. Pressure is picked up from the S Pen, so strokes thicken naturally.
 
-**اسکرول بند** freezes the page completely — nothing shifts under your hand
+**Lock scroll** freezes the page completely — nothing shifts under your hand
 mid-word. While it's locked, the **▲ ▼** buttons step one ayah at a time, so
 you never have to unlock just to move on.
 
@@ -106,9 +106,11 @@ before and now includes your handwriting.
 Canvases mount only as you scroll near them — a Juz 30 sheet is 564 ayah
 blocks and mounting them all at once would grind the tablet to a halt.
 
-**ٹائپنگ** turns the blanks into text fields, saved as you type.
-**نوٹس محفوظ کریں** exports everything as JSON for backup.
+**Type** turns the blanks into text fields, saved as you type.
+**Save notes** exports everything as JSON for backup.
 
+The interface is English and left-to-right; the worksheet itself stays
+right-to-left, so the Arabic and the table columns read in the correct order.
 Ayah numbers render in Arial inside parentheses — the same trick as the Word
 documents, so the Quran font's `calt` never swaps them for medallion glyphs.
 
@@ -158,7 +160,7 @@ fonts/                  your TTF goes here
   `text`, key `bundle`. It takes priority over the bundled
   `data/quran-data.json`. To go back to the bundled text, clear that key from
   DevTools → Application → IndexedDB.
-- **وقف کے نشانات ہٹائیں** removes pause signs (U+06D6–U+06DE, U+06E2, U+06E9)
+- **Remove pause marks** removes pause signs (U+06D6–U+06DE, U+06E2, U+06E9)
   at render time only — the stored text is untouched, so it's reversible. It
   deliberately keeps madda U+06E4, the silent-letter zeros U+06DF/U+06E0, and
   sukun U+06E1: those are IndoPak orthography, not pause marks, and stripping

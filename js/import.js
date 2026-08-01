@@ -80,10 +80,10 @@ window.QN = (function () {
 
   /* ---------- parse ---------- */
   async function parse(file, onStep) {
-    onStep?.('sql.js تیار ہو رہا ہے…');
+    onStep?.('Starting sql.js…');
     const SQL = await loadSql();
 
-    onStep?.('فائل پڑھی جا رہی ہے…');
+    onStep?.('Reading the file…');
     const buf = new Uint8Array(await file.arrayBuffer());
     const db = new SQL.Database(buf);
 
@@ -101,11 +101,11 @@ window.QN = (function () {
     }
     if (!table) {
       db.close();
-      throw new Error('surah/ayah/word/text والا ٹیبل نہیں ملا۔ ٹیبلز: ' +
+      throw new Error('No table with surah/ayah/word/text columns. Found: ' +
         present.join(', '));
     }
 
-    onStep?.(`ٹیبل: ${table} — الفاظ نکالے جا رہے ہیں…`);
+    onStep?.(`Table ${table} — extracting words…`);
     const stmt = db.prepare(
       `SELECT surah, ayah, word, text FROM "${table}" ORDER BY surah, ayah, word`);
 
@@ -123,9 +123,9 @@ window.QN = (function () {
     stmt.free();
     db.close();
 
-    if (!rows) throw new Error('ٹیبل خالی ہے۔');
+    if (!rows) throw new Error('That table is empty.');
 
-    onStep?.('آیات ترتیب دی جا رہی ہیں…');
+    onStep?.('Assembling ayat…');
     const text = {};
     const surahs = [];
     let kept = 0, odd = 0;
@@ -173,23 +173,24 @@ window.QN = (function () {
   function mountImporter(host, onDone) {
     host.innerHTML = `
       <div class="import">
-        <h2>قرآنی متن درآمد کریں</h2>
-        <p class="im-lead">QUL کی word-by-word SQLite فائل منتخب کریں۔
-          فائل آپ ہی کے آلے میں پڑھی جائے گی — کہیں اپلوڈ نہیں ہوتی۔</p>
+        <h2>Import Quranic text</h2>
+        <p class="im-lead">Choose your QUL word-by-word SQLite file. It's read
+          on this device — nothing is uploaded anywhere.</p>
         <label class="im-drop" tabindex="0">
           <input type="file" accept=".db,.sqlite,.sqlite3" hidden>
           <span class="im-icon" aria-hidden="true">⤓</span>
-          <span class="im-cta">فائل منتخب کریں</span>
-          <span class="im-hint">یا یہاں چھوڑ دیں — <code>.db</code></span>
+          <span class="im-cta">Choose file</span>
+          <span class="im-hint">or drop it here — <code>.db</code></span>
         </label>
         <p class="im-status" role="status"></p>
         <details class="im-help">
-          <summary>فائل کہاں سے ملے گی؟</summary>
+          <summary>Where do I get the file?</summary>
           <p><code>qul.tarteel.ai</code> → Resources → Word by Word →
-            script&nbsp;#59 (Indo-Pak) → SQLite ڈاؤن لوڈ کریں۔
-            یہی script آپ کے فونٹ&nbsp;#242 سے میل کھاتا ہے۔</p>
-          <p>اگر آپ Python چلا سکتے ہیں تو یہی کام
-            <code>python tools/build_data.py your.db</code> سے بھی ہو جائے گا۔</p>
+            script&nbsp;#59 (Indo-Pak) → download the SQLite. That's the script
+            matching font&nbsp;#242.</p>
+          <p>With Python installed,
+            <code>python tools/build_data.py your.db</code> does the same job
+            without the browser.</p>
         </details>
       </div>`;
 
@@ -203,14 +204,14 @@ window.QN = (function () {
       drop.classList.add('busy');
       try {
         const b = await parse(file, say);
-        say('محفوظ کیا جا رہا ہے…');
+        say('Saving…');
         await saveBundle(b);
         const { rows, kept, odd, table } = b.stats;
-        say(`ہو گیا — ${b.surahs.length} سورتیں، ${kept.toLocaleString('en')} الفاظ` +
-            (odd ? ` (${odd} آیات کے آخری ٹوکن سادہ ہندسے نہیں تھے)` : ''), 'ok');
+        say(`Done — ${b.surahs.length} surahs, ${kept.toLocaleString('en')} words` +
+            (odd ? ` (${odd} verse-final tokens weren't plain digits)` : ''), 'ok');
         setTimeout(() => onDone(b), 500);
       } catch (e) {
-        say('نہیں ہو سکا: ' + e.message, 'bad');
+        say("Couldn't import: " + e.message, 'bad');
       } finally {
         drop.classList.remove('busy');
       }

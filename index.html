@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ur" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>نحوِ قرآن — ورک شیٹ</title>
+<title>Quran Nahw — Worksheet</title>
 <meta name="theme-color" content="#16233F">
-<meta name="description" content="قرآنی آیات کی نحوی ترکیب کے لیے ورک شیٹ بنائیں — ہاتھ سے لکھنے یا ٹائپ کرنے کے لیے۔">
+<meta name="description" content="Build grammar worksheets from any range of the Quran — write on them by hand or type.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -15,106 +15,106 @@
 
 <header class="topbar">
   <button id="panelToggle" class="icon-btn" aria-expanded="true" aria-controls="panel">
-    <span aria-hidden="true">☰</span><span class="sr-only">ترتیبات</span>
+    <span aria-hidden="true">☰</span><span class="sr-only">Settings</span>
   </button>
-  <h1 class="wordmark">نحوِ قرآن<span class="wordmark-sub">worksheet</span></h1>
+  <h1 class="wordmark">Quran Nahw<span class="wordmark-sub">worksheet</span></h1>
   <div class="topbar-actions">
-    <button id="saveNotes" class="btn btn-ghost" hidden>نوٹس محفوظ کریں</button>
-    <button id="printBtn" class="btn btn-gold">پرنٹ / PDF</button>
+    <button id="saveNotes" class="btn btn-ghost" hidden>Save notes</button>
+    <button id="printBtn" class="btn btn-gold">Print / PDF</button>
   </div>
 </header>
 
 <div class="shell">
 
-  <aside id="panel" class="panel" aria-label="ورک شیٹ کی ترتیبات">
+  <aside id="panel" class="panel" aria-label="Worksheet settings">
 
     <section class="group">
-      <h2 class="group-title">انتخاب <span class="lat">range</span></h2>
+      <h2 class="group-title">Range</h2>
 
       <label class="field">
-        <span class="label">سورہ</span>
+        <span class="label">Surah</span>
         <select id="surah"></select>
       </label>
 
       <div class="field-row">
         <label class="field">
-          <span class="label">آیت از</span>
+          <span class="label">From ayah</span>
           <input id="from" type="number" min="1" value="1" inputmode="numeric">
         </label>
         <label class="field">
-          <span class="label">تا</span>
+          <span class="label">To</span>
           <input id="to" type="number" min="1" value="1" inputmode="numeric">
         </label>
       </div>
 
       <div class="field-row">
         <label class="field">
-          <span class="label">پارہ</span>
+          <span class="label">Juz</span>
           <select id="juz"><option value="">—</option></select>
         </label>
-        <button id="wholeSurah" class="btn btn-quiet">پوری سورہ</button>
+        <button id="wholeSurah" class="btn btn-quiet">Whole surah</button>
       </div>
       <p id="rangeNote" class="note"></p>
     </section>
 
     <section class="group">
-      <h2 class="group-title">ورک شیٹ کی قسم <span class="lat">layout</span></h2>
+      <h2 class="group-title">Layout</h2>
       <div class="choice-grid" id="layout" role="radiogroup">
-        <button role="radio" data-v="grid"  aria-checked="true">خانہ<em>ہر کلمہ الگ</em></button>
-        <button role="radio" data-v="table" aria-checked="false">جدول<em>صرفی + نحوی</em></button>
-        <button role="radio" data-v="lines" aria-checked="false">سطریں<em>مسلسل ترکیب</em></button>
-        <button role="radio" data-v="tree"  aria-checked="false">شجرہ<em>خاکہ بنانے کو</em></button>
+        <button role="radio" data-v="grid"  aria-checked="true">Word boxes<em>one box per word</em></button>
+        <button role="radio" data-v="table" aria-checked="false">Table<em>sarf + i'rab</em></button>
+        <button role="radio" data-v="lines" aria-checked="false">Lines<em>continuous i'rab</em></button>
+        <button role="radio" data-v="tree"  aria-checked="false">Diagram<em>space to draw trees</em></button>
       </div>
     </section>
 
     <section class="group">
-      <h2 class="group-title">طریقہ <span class="lat">mode</span></h2>
+      <h2 class="group-title">Mode</h2>
       <div class="choice-grid three" id="mode" role="radiogroup">
-        <button role="radio" data-v="hand" aria-checked="true">کاغذ<em>پرنٹ کے لیے</em></button>
-        <button role="radio" data-v="draw" aria-checked="false">قلم<em>S Pen سے لکھیں</em></button>
-        <button role="radio" data-v="type" aria-checked="false">ٹائپنگ<em>کی بورڈ سے</em></button>
+        <button role="radio" data-v="hand" aria-checked="true">Paper<em>blank, for print</em></button>
+        <button role="radio" data-v="draw" aria-checked="false">Pen<em>write with S Pen</em></button>
+        <button role="radio" data-v="type" aria-checked="false">Type<em>keyboard</em></button>
       </div>
     </section>
 
     <section class="group">
-      <h2 class="group-title">تفصیل <span class="lat">detail</span></h2>
+      <h2 class="group-title">Detail</h2>
 
       <label class="field">
-        <span class="label">آیت کا سائز <output id="fsOut" class="lat">30</output></span>
+        <span class="label">Ayah size <output id="fsOut">30</output></span>
         <input id="fontSize" type="range" min="18" max="56" step="2" value="30">
       </label>
 
       <label class="field" data-for="grid lines">
-        <span class="label">لکھنے کی سطریں <output id="lnOut" class="lat">3</output></span>
+        <span class="label">Writing lines <output id="lnOut">3</output></span>
         <input id="lines" type="range" min="1" max="8" step="1" value="3">
       </label>
 
       <label class="check" data-for="table">
         <input id="colMeaning" type="checkbox" checked>
-        <span>معنی کا خانہ</span>
+        <span>Meaning column</span>
       </label>
 
       <label class="check">
         <input id="noWaqf" type="checkbox" checked>
-        <span>وقف کے نشانات ہٹائیں</span>
+        <span>Remove pause marks</span>
       </label>
 
       <label class="check">
         <input id="showNums" type="checkbox" checked>
-        <span>آیت نمبر دکھائیں</span>
+        <span>Show ayah numbers</span>
       </label>
 
       <label class="check">
         <input id="onePer" type="checkbox">
-        <span>ہر آیت نئے صفحے پر</span>
+        <span>Each ayah on a new page</span>
       </label>
     </section>
 
     <section class="group">
-      <h2 class="group-title">کاغذ <span class="lat">paper</span></h2>
+      <h2 class="group-title">Paper</h2>
       <div class="field-row">
         <label class="field">
-          <span class="label">سائز</span>
+          <span class="label">Size</span>
           <select id="paper">
             <option value="A4">A4</option>
             <option value="Letter">Letter</option>
@@ -122,31 +122,31 @@
           </select>
         </label>
         <label class="field">
-          <span class="label">رخ</span>
+          <span class="label">Orientation</span>
           <select id="orient">
-            <option value="portrait">عمودی</option>
-            <option value="landscape">افقی</option>
+            <option value="portrait">Portrait</option>
+            <option value="landscape">Landscape</option>
           </select>
         </label>
       </div>
     </section>
 
     <section class="group" id="dataGroup">
-      <h2 class="group-title">متن <span class="lat">text</span></h2>
+      <h2 class="group-title">Text</h2>
       <p class="note" id="scriptNote"></p>
       <div class="field-row">
-        <button id="reimport" class="btn btn-quiet">اپنا QUL ڈیٹابیس</button>
-        <button id="exportData" class="btn btn-quiet">JSON محفوظ کریں</button>
+        <button id="reimport" class="btn btn-quiet">Import QUL file</button>
+        <button id="exportData" class="btn btn-quiet">Export JSON</button>
       </div>
-      <p class="note">شامل متن Indo-Pak (Madinah) ہے۔ اگر آپ کا اپنا QUL
-        script&nbsp;#59 ڈیٹابیس درکار ہو تو درآمد کر لیں۔</p>
+      <p class="note">Bundled text is Indo-Pak (Madinah). Import your own QUL
+        script&nbsp;#59 database if you'd rather use that.</p>
     </section>
 
     <p class="panel-foot" id="status">…</p>
     <p class="credit">
-      متن و فونٹ: <strong>AlQuran IndoPak</strong> — Ayman Siddiqui و
-      R. Siddiqua، برائے QuranWBW.com و Quran.com۔ صدقۂ جاریہ کے طور پر
-      دستیاب۔ تفصیل: <code>fonts/CREDITS-AND-TERMS.txt</code>
+      Text and font: <strong>AlQuran IndoPak</strong> by Ayman Siddiqui and
+      R. Siddiqua, for QuranWBW.com and Quran.com, released as Sadaqa-e-Jaria.
+      Full notice in <code>fonts/CREDITS-AND-TERMS.txt</code>
     </p>
   </aside>
 
@@ -156,29 +156,29 @@
 
 </div>
 
-<div id="penbar" class="penbar" hidden role="toolbar" aria-label="قلم">
+<div id="penbar" class="penbar" hidden role="toolbar" aria-label="Pen">
   <div class="pb-group" id="penColors">
-    <button class="sw" data-c="#b3261e" style="--sw:#b3261e" aria-pressed="true"><span class="sr-only">سرخ</span></button>
-    <button class="sw" data-c="#14213d" style="--sw:#14213d" aria-pressed="false"><span class="sr-only">نیلا</span></button>
-    <button class="sw" data-c="#1a1a1a" style="--sw:#1a1a1a" aria-pressed="false"><span class="sr-only">سیاہ</span></button>
-    <button class="sw" data-c="#1c6b41" style="--sw:#1c6b41" aria-pressed="false"><span class="sr-only">سبز</span></button>
+    <button class="sw" data-c="#b3261e" style="--sw:#b3261e" aria-pressed="true"><span class="sr-only">Red</span></button>
+    <button class="sw" data-c="#14213d" style="--sw:#14213d" aria-pressed="false"><span class="sr-only">Blue</span></button>
+    <button class="sw" data-c="#1a1a1a" style="--sw:#1a1a1a" aria-pressed="false"><span class="sr-only">Black</span></button>
+    <button class="sw" data-c="#1c6b41" style="--sw:#1c6b41" aria-pressed="false"><span class="sr-only">Green</span></button>
   </div>
   <div class="pb-sep"></div>
   <div class="pb-group" id="penSizes">
-    <button class="nib" data-s="1.3" aria-pressed="false"><i style="--n:3px"></i><span class="sr-only">باریک</span></button>
-    <button class="nib" data-s="2.2" aria-pressed="true"><i style="--n:5px"></i><span class="sr-only">درمیانہ</span></button>
-    <button class="nib" data-s="4" aria-pressed="false"><i style="--n:8px"></i><span class="sr-only">موٹا</span></button>
+    <button class="nib" data-s="1.3" aria-pressed="false"><i style="--n:3px"></i><span class="sr-only">Fine</span></button>
+    <button class="nib" data-s="2.2" aria-pressed="true"><i style="--n:5px"></i><span class="sr-only">Medium</span></button>
+    <button class="nib" data-s="4" aria-pressed="false"><i style="--n:8px"></i><span class="sr-only">Broad</span></button>
   </div>
   <div class="pb-sep"></div>
-  <button id="penLock" class="pb-btn" aria-pressed="false">اسکرول بند</button>
+  <button id="penLock" class="pb-btn" aria-pressed="false">Lock scroll</button>
   <div class="pb-group" id="penNav">
-    <button id="penPrev" class="pb-btn nav">▲<span class="sr-only">پچھلی آیت</span></button>
-    <button id="penNext" class="pb-btn nav">▼<span class="sr-only">اگلی آیت</span></button>
+    <button id="penPrev" class="pb-btn nav">▲<span class="sr-only">Previous ayah</span></button>
+    <button id="penNext" class="pb-btn nav">▼<span class="sr-only">Next ayah</span></button>
   </div>
   <div class="pb-sep"></div>
-  <button id="penEraser" class="pb-btn" aria-pressed="false">مٹائیں</button>
-  <button id="penUndo" class="pb-btn">واپس</button>
-  <button id="penClear" class="pb-btn danger">سب صاف</button>
+  <button id="penEraser" class="pb-btn" aria-pressed="false">Erase</button>
+  <button id="penUndo" class="pb-btn">Undo</button>
+  <button id="penClear" class="pb-btn danger">Clear all</button>
 </div>
 
 <style id="pageStyle"></style>

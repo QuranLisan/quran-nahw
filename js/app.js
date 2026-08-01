@@ -137,13 +137,13 @@ function renderAyah(s, a) {
       <div class="wcell">
         <div class="idx">${i + 1}</div>
         <div class="w">${esc(stripWaqf(word))}</div>
-        ${typing ? editable(`${s}:${n}:${i}:note`, 'ترکیب…')
+        ${typing ? editable(`${s}:${n}:${i}:note`, '')
                  : ruled(S.lines)}
       </div>`).join('') + '</div>';
 
   } else if (S.layout === 'table') {
-    const head = `<tr><th>#</th><th>کلمہ</th><th>تحلیلِ صرفی</th>
-      <th>ترکیبِ نحوی</th>${S.colMeaning ? '<th>معنی</th>' : ''}</tr>`;
+    const head = `<tr><th>#</th><th>Word</th><th>Sarf</th>
+      <th>I'rab</th>${S.colMeaning ? '<th>Meaning</th>' : ''}</tr>`;
     const rows = w.map((word, i) => `
       <tr>
         <td class="c-num">${i + 1}</td>
@@ -160,13 +160,13 @@ function renderAyah(s, a) {
 
   } else if (S.layout === 'lines') {
     body = fullAyah(w, n) +
-      (typing ? editable(`${s}:${n}:0:prose`, 'ترکیب لکھیں…', 'big')
+      (typing ? editable(`${s}:${n}:0:prose`, '', 'big')
               : ruled(Math.max(3, S.lines * 2)));
 
   } else { /* tree */
     const h = Math.max(150, S.lines * 72);
     body = fullAyah(w, n) + (typing
-      ? editable(`${s}:${n}:0:prose`, 'خاکہ کی وضاحت…', 'big')
+      ? editable(`${s}:${n}:0:prose`, '', 'big')
       : `<div class="field-box" style="height:${h}px">
            <svg xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%"
              fill="url(#dotgrid)"></rect></svg></div>`);
@@ -191,7 +191,7 @@ async function render() {
     let data;
     try { data = await getSurah(s); }
     catch (e) {
-      sheet.innerHTML = `<div class="empty"><p>سورہ ${s} کی فائل نہیں ملی۔</p>
+      sheet.innerHTML = `<div class="empty"><p>Surah ${s} wasn't found.</p>
         <p><code>data/surah/${String(s).padStart(3, '0')}.json</code></p></div>`;
       return;
     }
@@ -202,14 +202,14 @@ async function render() {
   }
 
   if (!picked.length) {
-    sheet.innerHTML = '<div class="empty"><p>اس حد میں کوئی آیت نہیں۔</p></div>';
+    sheet.innerHTML = '<div class="empty"><p>No ayat in that range.</p></div>';
     return;
   }
 
   const first = picked[0];
   const last = picked[picked.length - 1];
   const ref = `${first.s}:${first.ayahs[0].n} – ${last.s}:${last.ayahs.at(-1).n}`;
-  const kinds = { grid: 'خانہ', table: 'جدول', lines: 'سطریں', tree: 'شجرہ' };
+  const kinds = { grid: 'Word boxes', table: 'Table', lines: 'Lines', tree: 'Diagram' };
   const total = picked.reduce((t, p) => t + p.ayahs.length, 0);
 
   const dots = `<svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -223,7 +223,7 @@ async function render() {
           ? `${first.name} — ${last.name}` : first.name)}</div>
         <div class="sheet-ref">${ref}</div>
       </div>
-      <div class="sheet-kind">${kinds[S.layout]} — ${ar(total)} آیات</div>
+      <div class="sheet-kind">${kinds[S.layout]} — ${total} ${total === 1 ? 'ayah' : 'ayat'}</div>
     </div></div>`;
 
   const multi = picked.length > 1;
@@ -254,7 +254,7 @@ function fillSelectors() {
   $('#surah').innerHTML = INDEX.surahs.map((s) =>
     `<option value="${s.n}">${s.n}. ${esc(s.name)}${s.tr ? ' · ' + esc(s.tr) : ''}</option>`).join('');
   $('#juz').innerHTML = '<option value="">—</option>' +
-    INDEX.juz.map((j) => `<option value="${j.n}">پارہ ${ar(j.n)}${j.name ? ' · ' + esc(j.name) : ''}</option>`).join('');
+    INDEX.juz.map((j) => `<option value="${j.n}">Juz ${j.n}${j.name ? ' · ' + esc(j.name) : ''}</option>`).join('');
   $('#surah').value = S.s1;
   clampRange();
 }
@@ -263,7 +263,7 @@ function adoptBundle(b) {
   BUNDLE = b;
   INDEX = { surahs: b.surahs, juz: b.juz };
   if (!INDEX.surahs.some((x) => x.n === S.s1)) { S.s1 = S.s2 = 1; S.a1 = 1; S.a2 = 7; }
-  $('#scriptNote').textContent = b.script ? 'رسم الخط: ' + b.script : 'درآمد شدہ متن';
+  $('#scriptNote').textContent = b.script ? 'Script: ' + b.script : 'Imported text';
   fillSelectors();
   refresh();
 }
@@ -316,10 +316,10 @@ function clampRange() {
 function noteRange() {
   const el = $('#rangeNote');
   if (S.s1 !== S.s2) {
-    el.textContent =
-      `${S.s1}:${S.a1} تا ${S.s2}:${S.a2} — ایک سے زائد سورتیں`;
+    el.textContent = `${S.s1}:${S.a1} to ${S.s2}:${S.a2} — spans several surahs`;
   } else {
-    el.textContent = `${ar(S.a2 - S.a1 + 1)} آیات منتخب ہیں`;
+    const n = S.a2 - S.a1 + 1;
+    el.textContent = `${n} ${n === 1 ? 'ayah' : 'ayat'} selected`;
   }
 }
 
@@ -445,7 +445,7 @@ function wire() {
   $('#penLock').addEventListener('click', (e) => {
     const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
     e.currentTarget.setAttribute('aria-pressed', String(on));
-    e.currentTarget.textContent = on ? 'اسکرول کھولیں' : 'اسکرول بند';
+    e.currentTarget.textContent = on ? 'Unlock scroll' : 'Lock scroll';
     Draw.setLocked(on);
     $('#status').textContent = on ? 'scroll locked' : 'scroll unlocked';
   });
@@ -548,7 +548,7 @@ function wire() {
     } catch (_) { INDEX = null; }
   }
 
-  if (BUNDLE?.script) $('#scriptNote').textContent = 'رسم الخط: ' + BUNDLE.script;
+  if (BUNDLE?.script) $('#scriptNote').textContent = 'Script: ' + BUNDLE.script;
   fillSelectors();
 
   $('#fontSize').value = S.fontSize; $('#fsOut').textContent = S.fontSize;

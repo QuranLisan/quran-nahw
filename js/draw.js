@@ -215,9 +215,10 @@ window.Draw = (function () {
     canvas.className = 'ink';
     canvas.style.touchAction = locked ? 'none' : 'pan-y';
     el.appendChild(canvas);
-    live.set(key, { el, canvas,
-      // desynchronized cuts perceptible pen lag on tablets
-      ctx: canvas.getContext('2d', { desynchronized: true }) });
+    // NOTE: deliberately NOT desynchronized. On a transparent overlay it
+    // gets promoted to its own compositing layer, which flashes black on
+    // some Android GPUs during scroll.
+    live.set(key, { el, canvas, ctx: canvas.getContext('2d') });
     sizeCanvas(key);
     wire(key, canvas);
     const ro = new ResizeObserver(() => sizeCanvas(key));
