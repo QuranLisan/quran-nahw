@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>نحوِ قرآن — ورک شیٹ</title>
+<meta name="theme-color" content="#16233F">
+<meta name="description" content="قرآنی آیات کی نحوی ترکیب کے لیے ورک شیٹ بنائیں — ہاتھ سے لکھنے یا ٹائپ کرنے کے لیے۔">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button id="panelToggle" class="icon-btn" aria-expanded="true" aria-controls="panel">
+    <span aria-hidden="true">☰</span><span class="sr-only">ترتیبات</span>
+  </button>
+  <h1 class="wordmark">نحوِ قرآن<span class="wordmark-sub">worksheet</span></h1>
+  <div class="topbar-actions">
+    <button id="saveNotes" class="btn btn-ghost" hidden>نوٹس محفوظ کریں</button>
+    <button id="printBtn" class="btn btn-gold">پرنٹ / PDF</button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <aside id="panel" class="panel" aria-label="ورک شیٹ کی ترتیبات">
+
+    <section class="group">
+      <h2 class="group-title">انتخاب <span class="lat">range</span></h2>
+
+      <label class="field">
+        <span class="label">سورہ</span>
+        <select id="surah"></select>
+      </label>
+
+      <div class="field-row">
+        <label class="field">
+          <span class="label">آیت از</span>
+          <input id="from" type="number" min="1" value="1" inputmode="numeric">
+        </label>
+        <label class="field">
+          <span class="label">تا</span>
+          <input id="to" type="number" min="1" value="1" inputmode="numeric">
+        </label>
+      </div>
+
+      <div class="field-row">
+        <label class="field">
+          <span class="label">پارہ</span>
+          <select id="juz"><option value="">—</option></select>
+        </label>
+        <button id="wholeSurah" class="btn btn-quiet">پوری سورہ</button>
+      </div>
+      <p id="rangeNote" class="note"></p>
+    </section>
+
+    <section class="group">
+      <h2 class="group-title">ورک شیٹ کی قسم <span class="lat">layout</span></h2>
+      <div class="choice-grid" id="layout" role="radiogroup">
+        <button role="radio" data-v="grid"  aria-checked="true">خانہ<em>ہر کلمہ الگ</em></button>
+        <button role="radio" data-v="table" aria-checked="false">جدول<em>صرفی + نحوی</em></button>
+        <button role="radio" data-v="lines" aria-checked="false">سطریں<em>مسلسل ترکیب</em></button>
+        <button role="radio" data-v="tree"  aria-checked="false">شجرہ<em>خاکہ بنانے کو</em></button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2 class="group-title">طریقہ <span class="lat">mode</span></h2>
+      <div class="choice-grid two" id="mode" role="radiogroup">
+        <button role="radio" data-v="hand" aria-checked="true">لکھائی<em>S Pen / قلم</em></button>
+        <button role="radio" data-v="type" aria-checked="false">ٹائپنگ<em>محفوظ رہے گا</em></button>
+      </div>
+    </section>
+
+    <section class="group">
+      <h2 class="group-title">تفصیل <span class="lat">detail</span></h2>
+
+      <label class="field">
+        <span class="label">آیت کا سائز <output id="fsOut" class="lat">30</output></span>
+        <input id="fontSize" type="range" min="18" max="56" step="2" value="30">
+      </label>
+
+      <label class="field" data-for="grid lines">
+        <span class="label">لکھنے کی سطریں <output id="lnOut" class="lat">3</output></span>
+        <input id="lines" type="range" min="1" max="8" step="1" value="3">
+      </label>
+
+      <label class="check" data-for="table">
+        <input id="colMeaning" type="checkbox" checked>
+        <span>معنی کا خانہ</span>
+      </label>
+
+      <label class="check">
+        <input id="noWaqf" type="checkbox" checked>
+        <span>وقف کے نشانات ہٹائیں</span>
+      </label>
+
+      <label class="check">
+        <input id="showNums" type="checkbox" checked>
+        <span>آیت نمبر دکھائیں</span>
+      </label>
+
+      <label class="check">
+        <input id="onePer" type="checkbox">
+        <span>ہر آیت نئے صفحے پر</span>
+      </label>
+    </section>
+
+    <section class="group">
+      <h2 class="group-title">کاغذ <span class="lat">paper</span></h2>
+      <div class="field-row">
+        <label class="field">
+          <span class="label">سائز</span>
+          <select id="paper">
+            <option value="A4">A4</option>
+            <option value="Letter">Letter</option>
+            <option value="A5">A5</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="label">رخ</span>
+          <select id="orient">
+            <option value="portrait">عمودی</option>
+            <option value="landscape">افقی</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="group" id="dataGroup">
+      <h2 class="group-title">متن <span class="lat">text</span></h2>
+      <p class="note" id="scriptNote"></p>
+      <div class="field-row">
+        <button id="reimport" class="btn btn-quiet">اپنا QUL ڈیٹابیس</button>
+        <button id="exportData" class="btn btn-quiet">JSON محفوظ کریں</button>
+      </div>
+      <p class="note">شامل متن Indo-Pak (Madinah) ہے۔ اگر آپ کا اپنا QUL
+        script&nbsp;#59 ڈیٹابیس درکار ہو تو درآمد کر لیں۔</p>
+    </section>
+
+    <p class="panel-foot" id="status">…</p>
+    <p class="credit">
+      متن و فونٹ: <strong>AlQuran IndoPak</strong> — Ayman Siddiqui و
+      R. Siddiqua، برائے QuranWBW.com و Quran.com۔ صدقۂ جاریہ کے طور پر
+      دستیاب۔ تفصیل: <code>fonts/CREDITS-AND-TERMS.txt</code>
+    </p>
+  </aside>
+
+  <main class="stage">
+    <div id="sheet" class="sheet" aria-live="polite"></div>
+  </main>
+
+</div>
+
+<style id="pageStyle"></style>
+<script src="js/import.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "نحوِ قرآن — ورک شیٹ",
+  "short_name": "نحوِ قرآن",
+  "description": "قرآنی آیات کی نحوی ترکیب کے لیے ورک شیٹ بنائیں — ہاتھ سے لکھنے یا ٹائپ کرنے کے لیے۔",
+  "lang": "ur",
+  "dir": "rtl",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0F1A31",
+  "theme_color": "#16233F",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
