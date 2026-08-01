@@ -94,6 +94,20 @@ since that's the usual i'rab ink), three nib widths, eraser, undo, and clear.
 Pen and mouse draw; a finger scrolls the page instead, so your palm won't leave
 marks. Pressure is picked up from the S Pen, so strokes thicken naturally.
 
+### Pen hardware
+
+Built on Pointer Events, so it works with any stylus the browser reports as a
+pen — S Pen, Surface Pen, Apple Pencil, Wacom.
+
+- **Pressure** varies stroke width, filtered so the line doesn't pulse.
+- **Eraser end** of the stylus, or the **barrel button** held down, erases
+  without touching the toolbar.
+- **Hover preview** shows a ring at the nib on devices that report hover.
+- **Palm rejection**: pen and mouse draw, finger scrolls.
+- **Finger** button — for cheap capacitive styluses and a few Android drivers
+  that report as touch rather than pen. Turns off palm rejection so they work.
+  If nothing draws after a few seconds, the status line suggests it.
+
 **Lock scroll** freezes the page completely — nothing shifts under your hand
 mid-word. While it's locked, the **▲ ▼** buttons step one ayah at a time, so
 you never have to unlock just to move on.

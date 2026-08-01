@@ -15,6 +15,9 @@ window.Draw = (function () {
   let tool = { color: '#b3261e', size: 2.2, eraser: false };
   let io = null;
   let saveTimer = null;
+  let sawPen = false;          // has a real stylus ever been seen here?
+  let inputMode = 'auto';      // 'auto' = pen + mouse | 'all' = finger too
+  let hoverRing = null;
 
   const DPR = () => Math.min(3, Math.max(2, window.devicePixelRatio || 1));
 
@@ -125,6 +128,39 @@ window.Draw = (function () {
 
   /* ---------- input ---------- */
 
+  /* Some styluses (cheap capacitive ones, and a few Android drivers)
+     report as 'touch'. 'all' mode exists so those still work. */
+  function accepts(e) {
+    if (e.pointerType === 'pen') { sawPen = true; return true; }
+    if (e.pointerType === 'mouse') return true;
+    return inputMode === 'all';
+  }
+
+  /* Eraser end of the stylus, or the barrel button held down. */
+  function isEraserInput(e) {
+    return e.pointerType === 'pen' &&
+      ((e.buttons & 32) !== 0 || e.button === 5 || (e.buttons & 2) !== 0);
+  }
+
+  function ring() {
+    if (hoverRing) return hoverRing;
+    hoverRing = document.createElement('div');
+    hoverRing.className = 'nibring';
+    document.body.appendChild(hoverRing);
+    return hoverRing;
+  }
+
+  function showRing(e, size) {
+    const r = ring();
+    const d = Math.max(6, size * 2.4);
+    r.style.width = r.style.height = d + 'px';
+    r.style.left = (e.clientX - d / 2) + 'px';
+    r.style.top = (e.clientY - d / 2) + 'px';
+    r.style.borderColor = tool.color;
+    r.style.opacity = '1';
+  }
+  function hideRing() { if (hoverRing) hoverRing.style.opacity = '0'; }
+
   function wire(key, canvas) {
     let cur = null, last = null, lastMid = [0, 0], smooth = 0.5;
 
@@ -150,12 +186,15 @@ window.Draw = (function () {
     };
 
     canvas.addEventListener('pointerdown', (e) => {
-      // Palm rejection: pen and mouse draw, finger does not.
-      if (e.pointerType === 'touch') return;
+      // Palm rejection: pen (and mouse) draw, finger scrolls instead.
+      if (!accepts(e)) return;
       e.preventDefault();
-      canvas.setPointerCapture(e.pointerId);
+      // some drivers hand us a pointerId that can't be captured
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
       const p = pt(e);
-      if (tool.eraser) { eraseAt(p[0], p[1]); cur = 'erase'; return; }
+      if (tool.eraser || isEraserInput(e)) {
+        eraseAt(p[0], p[1]); cur = 'erase'; return;
+      }
       const dd = DPR();
       cur = { c: tool.color, s: tool.size,
               w: canvas.width / dd, h: canvas.height / dd,
@@ -165,10 +204,23 @@ window.Draw = (function () {
       lastMid = [p[0] * dd, p[1] * dd];
     });
 
+    // Hover preview — S Pen, Surface and Wacom all report position
+    // before the tip touches the glass.
     canvas.addEventListener('pointermove', (e) => {
+      if (!cur && e.pointerType === 'pen' && e.buttons === 0) {
+        sawPen = true; showRing(e, tool.size);
+      }
+    });
+    canvas.addEventListener('pointerleave', hideRing);
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    const onMove = (e) => {
       if (!cur) return;
       e.preventDefault();
-      const pts = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      // Not every browser/driver fills this in — falling back to the
+      // event itself keeps drawing alive instead of failing silently.
+      let pts = e.getCoalescedEvents ? e.getCoalescedEvents() : null;
+      if (!pts || !pts.length) pts = [e];
       if (cur === 'erase') {
         for (const ev of pts) { const p = pt(ev); eraseAt(p[0], p[1]); }
         return;
@@ -192,7 +244,12 @@ window.Draw = (function () {
         lastMid = [mx, my];
         last = p;
       }
-    });
+    };
+    canvas.addEventListener('pointermove', onMove);
+    // Chrome delivers these ahead of pointermove — less lag to the nib.
+    if ('onpointerrawupdate' in window) {
+      canvas.addEventListener('pointerrawupdate', onMove);
+    }
 
     const end = () => {
       if (cur && cur !== 'erase' && cur.p.length) {
@@ -203,7 +260,7 @@ window.Draw = (function () {
     };
     canvas.addEventListener('pointerup', end);
     canvas.addEventListener('pointercancel', end);
-    canvas.addEventListener('pointerleave', end);
+    canvas.addEventListener('lostpointercapture', end);
   }
 
   /* ---------- mount / unmount ---------- */
@@ -213,7 +270,8 @@ window.Draw = (function () {
     if (!key || live.has(key)) return;
     const canvas = document.createElement('canvas');
     canvas.className = 'ink';
-    canvas.style.touchAction = locked ? 'none' : 'pan-y';
+    canvas.style.touchAction =
+      (locked || inputMode === 'all') ? 'none' : 'pan-y';
     el.appendChild(canvas);
     // NOTE: deliberately NOT desynchronized. On a transparent overlay it
     // gets promoted to its own compositing layer, which flashes black on
@@ -273,13 +331,22 @@ window.Draw = (function () {
     locked = !!on;
     document.body.classList.toggle('penlock', locked);
     for (const { canvas } of live.values()) {
-      canvas.style.touchAction = locked ? 'none' : 'pan-y';
+      canvas.style.touchAction =
+      (locked || inputMode === 'all') ? 'none' : 'pan-y';
     }
   }
 
   return {
     load, attach, detach, mountAll, flush, repaintAll,
     setLocked, isLocked: () => locked,
+    setInputMode(m) {
+      inputMode = m;
+      for (const { canvas } of live.values()) {
+        canvas.style.touchAction = locked ? 'none' : (m === 'all' ? 'none' : 'pan-y');
+      }
+    },
+    inputMode: () => inputMode,
+    sawPen: () => sawPen,
     setTool: (t) => Object.assign(tool, t),
     getTool: () => ({ ...tool }),
     undo() {

@@ -239,18 +239,14 @@ async function render() {
   sheet.className = `sheet ${S.mode}`;
   sheet.innerHTML = dots + head + body;
 
-  if (S.onePer) {
-    const blocks = sheet.querySelectorAll('.ayah');
-    blocks.forEach((b, i) => { if (i < blocks.length - 1) b.classList.add('brk'); });
-  }
-
   fitBlocks();
+  const pages = paginate();
 
   if (S.mode === 'draw') Draw.attach(sheet); else Draw.detach();
 
   $('#status').textContent = S.mode === 'draw'
-    ? `${total} ayat · ${Draw.count()} inked`
-    : `${total} ayat · ${Notes.count()} notes saved`;
+    ? `${total} ayat · ${pages} pages · ${Draw.count()} inked`
+    : `${total} ayat · ${pages} pages`;
 }
 
 function fillSelectors() {
@@ -272,6 +268,51 @@ function adoptBundle(b) {
   refresh();
 }
 
+/* Chrome's own fragmentation is unreliable once blocks contain grids,
+   tables and transforms — it slices verses in half. So we measure the
+   laid-out blocks and place every page break ourselves. Each page then
+   holds a whole number of ayat and can never exceed the paper. */
+function paginate() {
+  const sheet = $('#sheet');
+  const H = pageContentPx();
+  sheet.querySelectorAll('.pagemark').forEach((m) => m.remove());
+
+  const blocks = [...sheet.children].filter((el) =>
+    el.classList.contains('ayah') || el.classList.contains('surah-mark') ||
+    el.classList.contains('jadwal'));
+  if (!blocks.length) return;
+
+  // Outer heights, margins included: the gap to the next block's top.
+  const tops = blocks.map((el) => el.getBoundingClientRect().top);
+  const outer = blocks.map((el, i) => (i + 1 < blocks.length)
+    ? tops[i + 1] - tops[i]
+    : el.getBoundingClientRect().height + 22);
+
+  let used = 0, page = 1, ayahOnPage = false;
+  blocks.forEach((el, i) => {
+    el.classList.remove('pbreak');
+    const h = outer[i];
+    const isAyah = el.classList.contains('ayah');
+    // one-per-page means one *ayah* per page; the sheet header rides
+    // along with the first one rather than eating a page by itself
+    const forced = S.onePer && isAyah && ayahOnPage;
+    if (i > 0 && (forced || used + h > H + 1)) {
+      el.classList.add('pbreak');
+      page++;
+      const mark = document.createElement('div');
+      mark.className = 'pagemark';
+      mark.dataset.page = page;
+      el.before(mark);
+      used = h;
+      ayahOnPage = isAyah;
+    } else {
+      used += h;
+      ayahOnPage = ayahOnPage || isAyah;
+    }
+  });
+  return page;
+}
+
 /* ---------- page geometry ---------- */
 function pageContentPx() {
   const [pw, ph] = PAPER[S.paper];
@@ -282,7 +323,7 @@ function pageContentPx() {
 /* An ayah taller than the page cannot be kept whole, so it gets scaled
    down to fit instead of being sliced across two sheets. */
 function fitBlocks() {
-  const max = pageContentPx() - 2;
+  const max = pageContentPx() - 24;
   for (const el of $('#sheet').querySelectorAll('.ayah')) {
     const inner = el.querySelector('.ayah-inner');
     if (!inner) continue;
@@ -327,6 +368,13 @@ function syncConditional() {
   });
   $('#saveNotes').hidden = S.mode !== 'type';
   $('#penbar').hidden = S.mode !== 'draw';
+  if (S.mode === 'draw' && !Draw.sawPen() && Draw.inputMode() !== 'all') {
+    setTimeout(() => {
+      if (S.mode === 'draw' && !Draw.sawPen() && Draw.inputMode() !== 'all') {
+        $('#status').textContent = 'no stylus detected yet — tap Finger if yours is not recognised';
+      }
+    }, 6000);
+  }
   document.body.classList.toggle('drawing', S.mode === 'draw');
 }
 
@@ -485,6 +533,15 @@ function wire() {
     $('#status').textContent = on ? 'scroll locked' : 'scroll unlocked';
   });
 
+  $('#penFinger').addEventListener('click', (e) => {
+    const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+    e.currentTarget.setAttribute('aria-pressed', String(on));
+    Draw.setInputMode(on ? 'all' : 'auto');
+    $('#status').textContent = on
+      ? 'finger draws too — page will not scroll by touch'
+      : 'pen only — finger scrolls the page';
+  });
+
   $('#penEraser').addEventListener('click', (e) => {
     const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
     e.currentTarget.setAttribute('aria-pressed', String(on));
@@ -506,12 +563,13 @@ function wire() {
 
   /* Ink must be on the page before the print snapshot is taken. */
   window.addEventListener('beforeprint', () => {
+    fitBlocks(); paginate();
     Draw.mountAll($('#sheet'));
     Draw.repaintAll();
   });
 
   $('#printBtn').addEventListener('click', async () => {
-    fitBlocks();
+    fitBlocks(); paginate();
     if (S.mode === 'draw') {
       await Draw.flush();
       Draw.mountAll($('#sheet'));
