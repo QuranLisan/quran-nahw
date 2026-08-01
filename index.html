@@ -162,7 +162,16 @@
     </p>
   </aside>
 
-  <div id="busy" class="busy" hidden><div class="busy-box"><span id="busyText">Working…</span></div></div>
+  <div id="busy" class="busy" hidden>
+    <div class="busy-box">
+      <span id="busyText">Working…</span>
+      <div class="busy-actions" id="busyActions" hidden>
+        <button id="busyShare" class="btn btn-gold">Open in…</button>
+        <button id="busySave" class="btn btn-ghost">Save instead</button>
+        <button id="busyClose" class="btn btn-ghost">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <main class="stage">
     <div id="sheet" class="sheet" aria-live="polite"></div>

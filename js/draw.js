@@ -15,6 +15,7 @@ window.Draw = (function () {
   let tool = { color: '#b3261e', size: 2.2, eraser: false };
   let io = null;
   let saveTimer = null;
+  let revision = 0;   // bumps on every change, so the PDF cache can expire
   let sawPen = false;          // has a real stylus ever been seen here?
   let inputMode = 'auto';      // 'auto' = pen + mouse | 'all' = finger too
   let hoverRing = null;
@@ -42,6 +43,7 @@ window.Draw = (function () {
   }
 
   function queueSave(key) {
+    revision++;
     dirty.add(key);
     clearTimeout(saveTimer);
     saveTimer = setTimeout(flush, 500);
@@ -369,6 +371,7 @@ window.Draw = (function () {
       return n;
     },
     count: () => strokes.size,
+    revision: () => revision,
     hasInk: (key) => strokes.has(key),
   };
 })();

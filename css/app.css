@@ -424,9 +424,13 @@ td .te { border-bottom: 0; min-height: 2.4em; }
   background: rgba(15, 26, 49, .72); backdrop-filter: blur(2px);
 }
 .busy-box {
-  padding: 16px 26px; border-radius: 4px;
+  padding: 18px 24px; border-radius: 4px; max-width: 320px; text-align: center;
   background: var(--lapis-900); border: 1px solid var(--gold);
-  color: #fff; font-size: 15px;
+  color: #fff; font-size: 15px; line-height: 1.5;
+}
+.busy-actions {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  margin-top: 14px;
 }
 
 /* off-screen stage used to compose one PDF page at a time */

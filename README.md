@@ -174,6 +174,13 @@ strokes are captured too.
 straight to the Android share sheet, where Samsung Notes, OneNote and Drive
 show up as targets — no download-then-find-it step.
 
+It takes two taps the first time, and that's deliberate rather than clumsy:
+`navigator.share()` is only allowed inside a live user gesture, and building
+the PDF takes longer than that gesture stays valid. So the first tap builds the
+file and the second one shares it. The result is cached, so tapping again with
+nothing changed shares instantly on a single tap. Change the range, layout or
+your handwriting and it rebuilds.
+
 **Print** is still there and still uses the browser, which produces a smaller
 vector file. Good on the laptop; less reliable on the tablet.
 

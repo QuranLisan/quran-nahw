@@ -563,32 +563,45 @@ function wire() {
 
   /* Ink must be on the page before the print snapshot is taken. */
   /* ---------- PDF export ---------- */
-  let lastPdf = null;
+  /* navigator.share() only works inside a live user gesture, and building
+     the PDF takes seconds — long enough for that gesture to expire. So we
+     cache the result and share it on a second, fresh tap. */
+  let pdfCache = null;
 
-  const busy = (msg) => {
+  const busy = (msg, ready) => {
     $('#busy').hidden = !msg;
     if (msg) $('#busyText').textContent = msg;
+    $('#busyActions').hidden = !ready;
   };
 
+  function signature() {
+    return JSON.stringify([S.s1, S.a1, S.s2, S.a2, S.layout, S.mode, S.fontSize,
+      S.lines, S.cols, S.colMeaning, S.noWaqf, S.showNums, S.onePer, S.fitPage,
+      S.paper, S.orient, Draw.count(), Draw.revision ? Draw.revision() : 0]);
+  }
+
   async function makePdf() {
+    const sig = signature();
+    if (pdfCache && pdfCache.sig === sig) return pdfCache;
+
     fitBlocks();
     const pages = paginate();
-    if (S.mode === 'draw') { await Draw.flush(); Draw.mountAll($('#sheet')); Draw.repaintAll(); }
+    if (S.mode === 'draw') {
+      await Draw.flush(); Draw.mountAll($('#sheet')); Draw.repaintAll();
+    }
     await new Promise((r) => setTimeout(r, 60));
 
-    busy(`Building ${pages} page${pages === 1 ? '' : 's'}…`);
+    busy(`Building ${pages} page${pages === 1 ? '' : 's'}…`, false);
     try {
       const out = await Exporter.build({
-        paper: S.paper, orient: S.orient,
-        pageH: pageContentPx(),
-        onStep: busy,
+        paper: S.paper, orient: S.orient, onStep: (m) => busy(m, false),
       });
-      const ref = `${S.s1}-${S.a1}-${S.s2}-${S.a2}`;
-      lastPdf = { blob: out.blob, name: Exporter.filename(ref) };
+      pdfCache = { sig, blob: out.blob, name: Exporter.filename(
+        `${S.s1}-${S.a1}-${S.s2}-${S.a2}`), pages: out.pages };
       $('#status').textContent = `PDF ready · ${out.pages} pages`;
-      return lastPdf;
+      return pdfCache;
     } finally {
-      busy(null);
+      busy(null, false);
     }
   }
 
@@ -597,25 +610,49 @@ function wire() {
       const f = await makePdf();
       Exporter.download(f.blob, f.name);
     } catch (err) {
-      busy(null);
+      busy(null, false);
       $('#status').textContent = 'PDF failed: ' + err.message;
     }
   });
 
+  async function doShare(f) {
+    try {
+      await Exporter.share(f.blob, f.name);
+      busy(null, false);
+      $('#status').textContent = 'shared';
+    } catch (err) {
+      if (err.name === 'AbortError') { busy(null, false); return; }
+      // Activation expired or the platform refused — offer the file instead.
+      busy('Sharing was blocked. Save the file and open it from Notes.', true);
+      $('#status').textContent = 'share unavailable: ' + err.name;
+    }
+  }
+
   if (Exporter.canShare()) {
     $('#openInBtn').hidden = false;
     $('#openInBtn').addEventListener('click', async () => {
+      // Already built for these settings? Share straight away — the tap
+      // that got us here is still valid.
+      if (pdfCache && pdfCache.sig === signature()) return doShare(pdfCache);
       try {
         const f = await makePdf();
-        await Exporter.share(f.blob, f.name);
+        busy(`${f.pages} page${f.pages === 1 ? '' : 's'} ready.`, true);
       } catch (err) {
-        busy(null);
-        if (err.name !== 'AbortError') {
-          $('#status').textContent = 'Share failed: ' + err.message;
-        }
+        busy(null, false);
+        $('#status').textContent = 'PDF failed: ' + err.message;
       }
     });
+
+    $('#busyShare').addEventListener('click', () => {
+      if (pdfCache) doShare(pdfCache);
+    });
   }
+
+  $('#busySave').addEventListener('click', () => {
+    if (pdfCache) Exporter.download(pdfCache.blob, pdfCache.name);
+    busy(null, false);
+  });
+  $('#busyClose').addEventListener('click', () => busy(null, false));
 
   window.addEventListener('beforeprint', () => {
     fitBlocks(); paginate();
