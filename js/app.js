@@ -40,7 +40,7 @@ const Notes = (() => {
           req.onsuccess = (e) => {
             const c = e.target.result;
             if (!c) return res();
-            cache.set(c.key, c.value);
+            if (!String(c.key).startsWith('draw:')) cache.set(c.key, c.value);
             c.continue();
           };
           req.onerror = () => res();
@@ -129,6 +129,7 @@ function fullAyah(words, n) {
 function renderAyah(s, a) {
   const { n, w } = a;
   const typing = S.mode === 'type';
+  const inkable = S.mode === 'draw';
   let body = '';
 
   if (S.layout === 'grid') {
@@ -171,7 +172,9 @@ function renderAyah(s, a) {
              fill="url(#dotgrid)"></rect></svg></div>`);
   }
 
-  return `<section class="ayah">${ayahHead(s, n)}${body}</section>`;
+  return `<section class="ayah${inkable ? ' inkable' : ''}"`
+    + (inkable ? ` data-key="${s}:${n}"` : '')
+    + `>${ayahHead(s, n)}${body}</section>`;
 }
 
 async function render() {
@@ -239,8 +242,11 @@ async function render() {
     blocks.forEach((b, i) => { if (i < blocks.length - 1) b.classList.add('brk'); });
   }
 
-  $('#status').textContent =
-    `${total} ayat · ${Notes.count()} notes saved`;
+  if (S.mode === 'draw') Draw.attach(sheet); else Draw.detach();
+
+  $('#status').textContent = S.mode === 'draw'
+    ? `${total} ayat · ${Draw.count()} inked`
+    : `${total} ayat · ${Notes.count()} notes saved`;
 }
 
 function fillSelectors() {
@@ -290,6 +296,8 @@ function syncConditional() {
     el.classList.toggle('off', !el.dataset.for.split(' ').includes(S.layout));
   });
   $('#saveNotes').hidden = S.mode !== 'type';
+  $('#penbar').hidden = S.mode !== 'draw';
+  document.body.classList.toggle('drawing', S.mode === 'draw');
 }
 
 function surahAyahCount(n) {
@@ -398,7 +406,58 @@ function wire() {
     S.orient = e.target.value; refresh({ paper: true });
   });
 
-  $('#printBtn').addEventListener('click', () => window.print());
+  /* ---------- pen toolbar ---------- */
+  const press = (group, el) => {
+    group.querySelectorAll('button').forEach((b) =>
+      b.setAttribute('aria-pressed', String(b === el)));
+  };
+
+  $('#penColors').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    Draw.setTool({ color: b.dataset.c, eraser: false });
+    press($('#penColors'), b);
+    $('#penEraser').setAttribute('aria-pressed', 'false');
+  });
+
+  $('#penSizes').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    Draw.setTool({ size: +b.dataset.s });
+    press($('#penSizes'), b);
+  });
+
+  $('#penEraser').addEventListener('click', (e) => {
+    const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+    e.currentTarget.setAttribute('aria-pressed', String(on));
+    Draw.setTool({ eraser: on });
+  });
+
+  $('#penUndo').addEventListener('click', () => {
+    if (!Draw.undo()) $('#status').textContent = 'nothing to undo';
+  });
+
+  $('#penClear').addEventListener('click', () => {
+    const n = Draw.clearVisible($('#sheet'));
+    $('#status').textContent = n ? `cleared ${n} ayat` : 'nothing to clear';
+  });
+
+  document.addEventListener('draw:saved', () => {
+    if (S.mode === 'draw') $('#status').textContent = `saved · ${Draw.count()} inked`;
+  });
+
+  /* Ink must be on the page before the print snapshot is taken. */
+  window.addEventListener('beforeprint', () => {
+    Draw.mountAll($('#sheet'));
+    Draw.repaintAll();
+  });
+
+  $('#printBtn').addEventListener('click', async () => {
+    if (S.mode === 'draw') {
+      await Draw.flush();
+      Draw.mountAll($('#sheet'));
+      Draw.repaintAll();
+    }
+    window.print();
+  });
 
   /* typing: debounced write-through */
   let t = null;
@@ -438,6 +497,7 @@ function wire() {
 (async function init() {
   loadSettings();
   await Notes.load();
+  await Draw.load();
 
   let stored = null;
   try { stored = await QN.loadBundle(); } catch (_) {}

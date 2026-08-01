@@ -80,9 +80,30 @@ Print to paper works identically — same dialog, pick your printer.
 | **سطریں** | full ayah, then ruled lines | continuous prose ترکیب |
 | **شجرہ** | full ayah, then a dot-grid field | drawing tarkeeb trees |
 
-The **لکھائی / ٹائپنگ** switch applies to all four. In typing mode every field
-saves to IndexedDB as you type, survives reload, and **نوٹس محفوظ کریں**
-exports everything as JSON for backup.
+## Three ways to work
+
+The **کاغذ / قلم / ٹائپنگ** switch applies to all four layouts.
+
+**کاغذ** leaves the space blank. Print or save as PDF and write on it in
+Samsung Notes. Unchanged from before.
+
+**قلم** puts a drawing canvas over each ayah so you can write directly in the
+app with the S Pen. A toolbar appears at the bottom: four colours (red first,
+since that's the usual i'rab ink), three nib widths, eraser, undo, and clear.
+
+Pen and mouse draw; a finger scrolls the page instead, so your palm won't leave
+marks. Pressure is picked up from the S Pen, so strokes thicken naturally.
+
+Strokes are stored as points rather than pixels, keyed per ayah. That means
+they scale with the page, print at full resolution instead of looking like a
+screenshot, and survive a paper-size change. **پرنٹ / PDF** works exactly as
+before and now includes your handwriting.
+
+Canvases mount only as you scroll near them — a Juz 30 sheet is 564 ayah
+blocks and mounting them all at once would grind the tablet to a halt.
+
+**ٹائپنگ** turns the blanks into text fields, saved as you type.
+**نوٹس محفوظ کریں** exports everything as JSON for backup.
 
 Ayah numbers render in Arial inside parentheses — the same trick as the Word
 documents, so the Quran font's `calt` never swaps them for medallion glyphs.
