@@ -94,6 +94,10 @@ since that's the usual i'rab ink), three nib widths, eraser, undo, and clear.
 Pen and mouse draw; a finger scrolls the page instead, so your palm won't leave
 marks. Pressure is picked up from the S Pen, so strokes thicken naturally.
 
+**اسکرول بند** freezes the page completely — nothing shifts under your hand
+mid-word. While it's locked, the **▲ ▼** buttons step one ayah at a time, so
+you never have to unlock just to move on.
+
 Strokes are stored as points rather than pixels, keyed per ayah. That means
 they scale with the page, print at full resolution instead of looking like a
 screenshot, and survive a paper-size change. **پرنٹ / PDF** works exactly as
@@ -145,6 +149,11 @@ fonts/                  your TTF goes here
 
 - **Changes not showing up?** The service worker is serving the old copy. Bump
   the `CACHE` constant at the top of `sw.js`.
+- **Ruled lines too faint or too dark?** One value controls every writing
+  guide: `--rule-write` at the top of `css/app.css` (currently `#dadee4`).
+  Lower the number for darker, raise it for fainter. Cell outlines and table
+  borders use `--rule` and are deliberately separate, so structure stays
+  readable when the guides go pale.
 - **Where does imported text live?** IndexedDB, database `quran-nahw`, store
   `text`, key `bundle`. It takes priority over the bundled
   `data/quran-data.json`. To go back to the bundled text, clear that key from

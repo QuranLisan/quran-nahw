@@ -30,6 +30,7 @@
   --ink-soft: #5d6470;
   --rule: #b6bcc5;
   --rule-soft: #d2d7de;
+  --rule-write: #dadee4;   /* ruled writing guides — deliberately faint */
   --rowh: 66px;
 
   --urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Nafees Nastaleeq",
@@ -324,9 +325,9 @@ table.tarkeeb tr { break-inside: avoid; }
 .hand table.tarkeeb tbody tr { height: var(--rowh); }
 
 /* --- ruled writing space --- */
-.rules > .rl { border-bottom: 1px solid var(--rule); height: 1.55em; }
+.rules > .rl { border-bottom: 1px solid var(--rule-write); height: 1.55em; }
 .rules.tight > .rl { height: 1.25em; }
-.wcell .rules > .rl { border-bottom-color: var(--rule-soft); }
+.wcell .rules > .rl { border-bottom-color: var(--rule-write); }
 
 /* --- layout: شجرہ (diagram field) --- */
 .field-box { border: 1px solid var(--rule); position: relative; }
@@ -336,13 +337,13 @@ table.tarkeeb tr { break-inside: avoid; }
 .te {
   min-height: 1.7em; padding: 2px 4px;
   font-family: var(--urdu); font-size: 15px; line-height: 2; color: var(--ink);
-  border-bottom: 1px dashed var(--rule);
+  border-bottom: 1px dashed var(--rule-write);
   outline: none; white-space: pre-wrap; overflow-wrap: anywhere;
 }
 .te:empty::before { content: attr(data-ph); color: #b6bbc3; }
 .te:focus { background: #fdf7e8; border-bottom-color: var(--gold); }
 td .te { border-bottom: 0; min-height: 2.4em; }
-.te.big { min-height: 6em; border: 1px dashed var(--rule); border-radius: 2px; }
+.te.big { min-height: 6em; border: 1px dashed var(--rule-write); border-radius: 2px; }
 
 .empty {
   padding: 60px 20px; text-align: center; color: var(--ink-soft); font-size: 15px;
@@ -391,6 +392,12 @@ td .te { border-bottom: 0; min-height: 2.4em; }
 }
 
 /* ---------- drawing layer ---------- */
+
+/* Scroll lock: the stage stops scrolling entirely, so a stray palm or
+   pen drag can't shift the page mid-word. */
+body.penlock .stage { overflow: hidden; overscroll-behavior: none; }
+body.penlock { overscroll-behavior: none; overflow: hidden; }
+body.penlock .ink { cursor: crosshair; }
 
 .ayah.inkable { position: relative; }
 .ink {
@@ -441,6 +448,9 @@ body.drawing .stage { padding-bottom: 120px; }
 .pb-btn:hover { border-color: var(--lapis-600); }
 .pb-btn[aria-pressed="true"] { border-color: var(--gold); color: #fff; }
 .pb-btn.danger:hover { border-color: #a3312b; color: #ffb4ae; }
+.pb-btn.nav {
+  font-family: var(--lat); font-size: 12px; padding: 3px 10px; line-height: 1.9;
+}
 
 @media (max-width: 560px) {
   .penbar { gap: 6px; padding: 6px 8px; bottom: 10px; }
@@ -472,7 +482,7 @@ body.drawing .stage { padding-bottom: 120px; }
     width: auto; max-width: none; margin: 0; padding: 0;
     box-shadow: none; animation: none;
   }
-  .te { border-bottom-color: var(--rule); background: none; }
+  .te { border-bottom-color: var(--rule-write); background: none; }
   .te:empty::before { content: ""; }
   .ayah { break-inside: avoid; }
   .ink { position: absolute; inset: 0; }

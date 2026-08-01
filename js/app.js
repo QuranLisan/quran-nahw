@@ -214,7 +214,7 @@ async function render() {
 
   const dots = `<svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs><pattern id="dotgrid" width="17" height="17" patternUnits="userSpaceOnUse">
-      <circle cx="1.2" cy="1.2" r=".9" fill="#c9ced6"></circle>
+      <circle cx="1.2" cy="1.2" r=".9" fill="#d3d8df"></circle>
     </pattern></defs></svg>`;
 
   const head = `<div class="jadwal"><div class="jadwal-in">
@@ -423,6 +423,31 @@ function wire() {
     const b = e.target.closest('button'); if (!b) return;
     Draw.setTool({ size: +b.dataset.s });
     press($('#penSizes'), b);
+  });
+
+  /* Ayah-step navigation. Works while scroll is locked, because
+     overflow:hidden still allows programmatic scrolling. */
+  let navIdx = 0;
+  function stepAyah(dir) {
+    const stage = document.querySelector('.stage');
+    const blocks = [...$('#sheet').querySelectorAll('.ayah')];
+    if (!blocks.length) return;
+    // Re-sync to whatever is on screen, in case the person scrolled by hand.
+    const top = stage.getBoundingClientRect().top + 8;
+    let seen = blocks.findIndex((b) => b.getBoundingClientRect().bottom > top);
+    if (seen !== -1) navIdx = seen;
+    navIdx = Math.min(Math.max(0, navIdx + dir), blocks.length - 1);
+    blocks[navIdx].scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  $('#penPrev').addEventListener('click', () => stepAyah(-1));
+  $('#penNext').addEventListener('click', () => stepAyah(1));
+
+  $('#penLock').addEventListener('click', (e) => {
+    const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+    e.currentTarget.setAttribute('aria-pressed', String(on));
+    e.currentTarget.textContent = on ? 'اسکرول کھولیں' : 'اسکرول بند';
+    Draw.setLocked(on);
+    $('#status').textContent = on ? 'scroll locked' : 'scroll unlocked';
   });
 
   $('#penEraser').addEventListener('click', (e) => {

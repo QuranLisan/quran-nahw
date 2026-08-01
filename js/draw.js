@@ -79,12 +79,20 @@ window.Draw = (function () {
       ctx.fillStyle = st.c; ctx.fill();
       return;
     }
+    // Quadratic through midpoints: the raw points are a jagged polyline,
+    // and drawing them segment-by-segment is what makes a stroke look
+    // like it was assembled out of dashes.
+    let px = p[0][0] * sx, py = p[0][1] * sy;
     for (let i = 1; i < p.length; i++) {
+      const cx = p[i][0] * sx, cy = p[i][1] * sy;
+      const mx = (px + cx) / 2, my = (py + cy) / 2;
       ctx.beginPath();
       ctx.lineWidth = lw * (0.45 + 0.55 * (p[i][2] || 0.5));
-      ctx.moveTo(p[i - 1][0] * sx, p[i - 1][1] * sy);
-      ctx.lineTo(p[i][0] * sx, p[i][1] * sy);
+      ctx.moveTo(px, py);
+      ctx.quadraticCurveTo(px, py, mx, my);
+      ctx.lineTo(cx, cy);
       ctx.stroke();
+      px = cx; py = cy;
     }
   }
 
@@ -118,7 +126,7 @@ window.Draw = (function () {
   /* ---------- input ---------- */
 
   function wire(key, canvas) {
-    let cur = null, last = null;
+    let cur = null, last = null, lastMid = [0, 0], smooth = 0.5;
 
     const pt = (e) => {
       const r = canvas.getBoundingClientRect();
@@ -153,6 +161,8 @@ window.Draw = (function () {
               w: canvas.width / dd, h: canvas.height / dd,
               t: Date.now(), p: [p] };
       last = p;
+      smooth = p[2];
+      lastMid = [p[0] * dd, p[1] * dd];
     });
 
     canvas.addEventListener('pointermove', (e) => {
@@ -168,13 +178,18 @@ window.Draw = (function () {
       m.ctx.strokeStyle = cur.c; m.ctx.lineCap = 'round'; m.ctx.lineJoin = 'round';
       for (const ev of pts) {
         const p = pt(ev);
-        if (last && Math.hypot(p[0] - last[0], p[1] - last[1]) < 0.6) continue;
+        if (last && Math.hypot(p[0] - last[0], p[1] - last[1]) < 1.1) continue;
+        // low-pass the pressure so the line doesn't pulse
+        smooth = smooth * 0.68 + p[2] * 0.32;
+        p[2] = smooth;
         cur.p.push(p);
+        const mx = ((last[0] + p[0]) / 2) * d, my = ((last[1] + p[1]) / 2) * d;
         m.ctx.beginPath();
-        m.ctx.lineWidth = cur.s * d * (0.45 + 0.55 * p[2]);
-        m.ctx.moveTo(last[0] * d, last[1] * d);
-        m.ctx.lineTo(p[0] * d, p[1] * d);
+        m.ctx.lineWidth = cur.s * d * (0.45 + 0.55 * smooth);
+        m.ctx.moveTo(lastMid[0], lastMid[1]);
+        m.ctx.quadraticCurveTo(last[0] * d, last[1] * d, mx, my);
         m.ctx.stroke();
+        lastMid = [mx, my];
         last = p;
       }
     });
@@ -198,8 +213,11 @@ window.Draw = (function () {
     if (!key || live.has(key)) return;
     const canvas = document.createElement('canvas');
     canvas.className = 'ink';
+    canvas.style.touchAction = locked ? 'none' : 'pan-y';
     el.appendChild(canvas);
-    live.set(key, { el, canvas, ctx: canvas.getContext('2d') });
+    live.set(key, { el, canvas,
+      // desynchronized cuts perceptible pen lag on tablets
+      ctx: canvas.getContext('2d', { desynchronized: true }) });
     sizeCanvas(key);
     wire(key, canvas);
     const ro = new ResizeObserver(() => sizeCanvas(key));
@@ -249,8 +267,18 @@ window.Draw = (function () {
     catch (_) { /* older browser */ }
   }
 
+  let locked = false;
+  function setLocked(on) {
+    locked = !!on;
+    document.body.classList.toggle('penlock', locked);
+    for (const { canvas } of live.values()) {
+      canvas.style.touchAction = locked ? 'none' : 'pan-y';
+    }
+  }
+
   return {
     load, attach, detach, mountAll, flush, repaintAll,
+    setLocked, isLocked: () => locked,
     setTool: (t) => Object.assign(tool, t),
     getTool: () => ({ ...tool }),
     undo() {
