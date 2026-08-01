@@ -206,12 +206,11 @@ window.Draw = (function () {
 
     // Hover preview — S Pen, Surface and Wacom all report position
     // before the tip touches the glass.
+    // Hover tracking only — no on-screen ring. A marker that follows the
+    // nib is a distraction when you're actually trying to write.
     canvas.addEventListener('pointermove', (e) => {
-      if (!cur && e.pointerType === 'pen' && e.buttons === 0) {
-        sawPen = true; showRing(e, tool.size);
-      }
+      if (!cur && e.pointerType === 'pen' && e.buttons === 0) sawPen = true;
     });
-    canvas.addEventListener('pointerleave', hideRing);
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
     const onMove = (e) => {

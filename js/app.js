@@ -562,6 +562,61 @@ function wire() {
   });
 
   /* Ink must be on the page before the print snapshot is taken. */
+  /* ---------- PDF export ---------- */
+  let lastPdf = null;
+
+  const busy = (msg) => {
+    $('#busy').hidden = !msg;
+    if (msg) $('#busyText').textContent = msg;
+  };
+
+  async function makePdf() {
+    fitBlocks();
+    const pages = paginate();
+    if (S.mode === 'draw') { await Draw.flush(); Draw.mountAll($('#sheet')); Draw.repaintAll(); }
+    await new Promise((r) => setTimeout(r, 60));
+
+    busy(`Building ${pages} page${pages === 1 ? '' : 's'}…`);
+    try {
+      const out = await Exporter.build({
+        paper: S.paper, orient: S.orient,
+        pageH: pageContentPx(),
+        onStep: busy,
+      });
+      const ref = `${S.s1}-${S.a1}-${S.s2}-${S.a2}`;
+      lastPdf = { blob: out.blob, name: Exporter.filename(ref) };
+      $('#status').textContent = `PDF ready · ${out.pages} pages`;
+      return lastPdf;
+    } finally {
+      busy(null);
+    }
+  }
+
+  $('#savePdfBtn').addEventListener('click', async () => {
+    try {
+      const f = await makePdf();
+      Exporter.download(f.blob, f.name);
+    } catch (err) {
+      busy(null);
+      $('#status').textContent = 'PDF failed: ' + err.message;
+    }
+  });
+
+  if (Exporter.canShare()) {
+    $('#openInBtn').hidden = false;
+    $('#openInBtn').addEventListener('click', async () => {
+      try {
+        const f = await makePdf();
+        await Exporter.share(f.blob, f.name);
+      } catch (err) {
+        busy(null);
+        if (err.name !== 'AbortError') {
+          $('#status').textContent = 'Share failed: ' + err.message;
+        }
+      }
+    });
+  }
+
   window.addEventListener('beforeprint', () => {
     fitBlocks(); paginate();
     Draw.mountAll($('#sheet'));

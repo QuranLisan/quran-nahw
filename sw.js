@@ -1,7 +1,7 @@
 /* نحوِ قرآن — service worker
    Bump CACHE when you change any shell file, otherwise the old copy
    keeps serving. */
-const CACHE = 'quran-nahw-v11';
+const CACHE = 'quran-nahw-v12';
 
 const SHELL = [
   './',
@@ -10,6 +10,9 @@ const SHELL = [
   'js/app.js',
   'js/import.js',
   'js/draw.js',
+  'js/export.js',
+  'vendor/jspdf.min.js',
+  'vendor/html2canvas.min.js',
   'manifest.webmanifest',
   'fonts/quran-indopak.woff2',
   'fonts/quran-indopak.ttf',

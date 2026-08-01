@@ -20,7 +20,9 @@
   <h1 class="wordmark">Quran Nahw<span class="wordmark-sub">worksheet</span></h1>
   <div class="topbar-actions">
     <button id="saveNotes" class="btn btn-ghost" hidden>Save notes</button>
-    <button id="printBtn" class="btn btn-gold">Print / PDF</button>
+    <button id="openInBtn" class="btn btn-ghost" hidden>Open in…</button>
+    <button id="savePdfBtn" class="btn btn-gold">Save PDF</button>
+    <button id="printBtn" class="btn btn-ghost">Print</button>
   </div>
 </header>
 
@@ -160,6 +162,8 @@
     </p>
   </aside>
 
+  <div id="busy" class="busy" hidden><div class="busy-box"><span id="busyText">Working…</span></div></div>
+
   <main class="stage">
     <div id="sheet" class="sheet" aria-live="polite"></div>
   </main>
@@ -195,6 +199,7 @@
 <style id="pageStyle"></style>
 <script src="js/import.js"></script>
 <script src="js/draw.js"></script>
+<script src="js/export.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

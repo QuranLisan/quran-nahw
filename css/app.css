@@ -419,21 +419,37 @@ td .te { border-bottom: 0; min-height: 2.4em; }
   background: rgba(110, 138, 191, .16);
 }
 
+.busy {
+  position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
+  background: rgba(15, 26, 49, .72); backdrop-filter: blur(2px);
+}
+.busy-box {
+  padding: 16px 26px; border-radius: 4px;
+  background: var(--lapis-900); border: 1px solid var(--gold);
+  color: #fff; font-size: 15px;
+}
+
+/* off-screen stage used to compose one PDF page at a time */
+.export-holder { position: fixed; left: -20000px; top: 0; z-index: -1; }
+.export-page {
+  padding: 0 !important; margin: 0 !important; box-shadow: none !important;
+  animation: none !important; background: #fff;
+}
+.export-page .pagemark { display: none !important; }
+
+/* while capturing, hide anything that must not land in the PDF */
+body.exporting .ink { outline: none; }
+body.exporting .pagemark { display: none !important; }
+
 /* ---------- drawing layer ---------- */
 
 /* Scroll lock: the stage stops scrolling entirely, so a stray palm or
    pen drag can't shift the page mid-word. */
 body.penlock .stage { overflow: hidden; overscroll-behavior: none; }
 body.penlock { overscroll-behavior: none; overflow: hidden; }
-body.penlock .ink { cursor: crosshair; }
+
 
 .ayah.inkable { position: relative; }
-.nibring {
-  position: fixed; z-index: 40; pointer-events: none;
-  border: 1.5px solid var(--gold); border-radius: 50%;
-  opacity: 0; transition: opacity .12s;
-}
-
 .ink {
   position: absolute; inset: 0; z-index: 3;
   /* stop long-press selection, magnifiers and callouts under the nib */
@@ -443,9 +459,10 @@ body.penlock .ink { cursor: crosshair; }
   touch-action: pan-y;
   cursor: crosshair;
 }
+/* no crosshair chasing the nib on a touch/pen screen */
+@media (any-pointer: coarse) { .ink { cursor: none; } }
 body.drawing .sheet { user-select: none; -webkit-user-select: none; }
-body.drawing .nibring { display: block; }
-@media print { .nibring { display: none !important; } }
+
 
 
 .penbar {

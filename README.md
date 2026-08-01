@@ -163,6 +163,21 @@ fonts/                  your TTF goes here
 
 ## Getting a clean PDF
 
+**Save PDF** builds the file inside the app rather than handing the job to the
+browser's print engine. That matters: Chrome on Android lays print pages out
+differently from Chrome on desktop, which is how verses ended up sliced and the
+first one went missing. The app now composes each page itself, cutting only at
+the ayah boundaries it chose, so the output is identical on every device. Pen
+strokes are captured too.
+
+**Open in…** appears on devices that support file sharing. It hands the PDF
+straight to the Android share sheet, where Samsung Notes, OneNote and Drive
+show up as targets — no download-then-find-it step.
+
+**Print** is still there and still uses the browser, which produces a smaller
+vector file. Good on the laptop; less reliable on the tablet.
+
+
 Ayat vary enormously in length, so a worksheet block can easily outgrow a
 sheet of paper. Three controls decide how the pages come out:
 
