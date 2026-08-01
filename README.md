@@ -174,6 +174,12 @@ strokes are captured too.
 straight to the Android share sheet, where Samsung Notes, OneNote and Drive
 show up as targets — no download-then-find-it step.
 
+If your device refuses the share — Samsung Notes isn't registered as a PDF
+share target on every One UI version — the app saves the file instead rather
+than failing silently, and tells you where it went. The manual route is:
+**My Files → tap the PDF → Open with → Samsung Notes**, or in Samsung Notes,
+new note → **Insert → PDF**. That path always works.
+
 It takes two taps the first time, and that's deliberate rather than clumsy:
 `navigator.share()` is only allowed inside a live user gesture, and building
 the PDF takes longer than that gesture stays valid. So the first tap builds the

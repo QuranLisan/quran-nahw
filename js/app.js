@@ -568,10 +568,12 @@ function wire() {
      cache the result and share it on a second, fresh tap. */
   let pdfCache = null;
 
-  const busy = (msg, ready) => {
+  const busy = (msg, ready, hint) => {
     $('#busy').hidden = !msg;
     if (msg) $('#busyText').textContent = msg;
     $('#busyActions').hidden = !ready;
+    $('#busyHint').hidden = !hint;
+    if (hint) $('#busyHint').innerHTML = hint;
   };
 
   function signature() {
@@ -615,6 +617,12 @@ function wire() {
     }
   });
 
+  const NOTES_HINT =
+    'The file is in your <strong>Downloads</strong> folder.<br><br>' +
+    'To get it into Samsung Notes: open <strong>My Files</strong>, tap the ' +
+    'PDF, then <strong>Open with → Samsung Notes</strong>. Or in Samsung ' +
+    'Notes, create a note and use <strong>Insert → PDF</strong>.';
+
   async function doShare(f) {
     try {
       await Exporter.share(f.blob, f.name);
@@ -622,9 +630,12 @@ function wire() {
       $('#status').textContent = 'shared';
     } catch (err) {
       if (err.name === 'AbortError') { busy(null, false); return; }
-      // Activation expired or the platform refused — offer the file instead.
-      busy('Sharing was blocked. Save the file and open it from Notes.', true);
-      $('#status').textContent = 'share unavailable: ' + err.name;
+      // The platform refused the share. Don't leave them empty-handed —
+      // save the file straight away and say where it went.
+      Exporter.download(f.blob, f.name);
+      busy('Your device blocked sharing, so the PDF was saved instead.',
+           true, NOTES_HINT + `<br><br><code>${err.name}</code>`);
+      $('#status').textContent = 'saved · sharing blocked (' + err.name + ')';
     }
   }
 
@@ -636,7 +647,9 @@ function wire() {
       if (pdfCache && pdfCache.sig === signature()) return doShare(pdfCache);
       try {
         const f = await makePdf();
-        busy(`${f.pages} page${f.pages === 1 ? '' : 's'} ready.`, true);
+        busy(`${f.pages} page${f.pages === 1 ? '' : 's'} ready.`, true,
+             'Tap <strong>Open in…</strong> to send it to Samsung Notes, or ' +
+             '<strong>Save to device</strong> to keep it in Downloads.');
       } catch (err) {
         busy(null, false);
         $('#status').textContent = 'PDF failed: ' + err.message;
@@ -649,8 +662,16 @@ function wire() {
   }
 
   $('#busySave').addEventListener('click', () => {
-    if (pdfCache) Exporter.download(pdfCache.blob, pdfCache.name);
-    busy(null, false);
+    if (!pdfCache) return;
+    Exporter.download(pdfCache.blob, pdfCache.name);
+    busy('Saved.', true, NOTES_HINT);
+    $('#status').textContent = 'saved to Downloads';
+  });
+
+  $('#busyOpen').addEventListener('click', () => {
+    if (!pdfCache) return;
+    if (Exporter.openInTab(pdfCache.blob)) busy(null, false);
+    else busy('Your browser blocked the new tab.', true, NOTES_HINT);
   });
   $('#busyClose').addEventListener('click', () => busy(null, false));
 

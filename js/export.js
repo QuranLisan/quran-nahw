@@ -147,8 +147,17 @@ window.Exporter = (function () {
 
   async function share(blob, name) {
     const file = new File([blob], name, { type: 'application/pdf' });
-    await navigator.share({ files: [file], title: name });
+    // Keep the payload minimal — some Android builds reject a share that
+    // carries files alongside title/text.
+    await navigator.share({ files: [file] });
   }
 
-  return { build, download, share, canShare, filename };
+  function openInTab(blob) {
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    return !!w;
+  }
+
+  return { build, download, share, openInTab, canShare, filename };
 })();

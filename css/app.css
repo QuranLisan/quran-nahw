@@ -428,6 +428,13 @@ td .te { border-bottom: 0; min-height: 2.4em; }
   background: var(--lapis-900); border: 1px solid var(--gold);
   color: #fff; font-size: 15px; line-height: 1.5;
 }
+.busy-hint {
+  margin: 10px 0 0; font-size: 12.5px; line-height: 1.6;
+  color: var(--lapis-200); text-align: left;
+}
+.busy-hint code {
+  font-family: var(--lat); font-size: 11px; color: var(--gold-lt);
+}
 .busy-actions {
   display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
   margin-top: 14px;
