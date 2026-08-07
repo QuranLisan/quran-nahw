@@ -7,7 +7,7 @@
    build a device is actually running — clearing "cached images and files" on
    Android does NOT clear a service worker's Cache Storage, so a stale copy can
    survive a refresh and look identical. */
-const BUILD = 16;
+const BUILD = 17;
 
 /* ------------------------------------------------------------------ config */
 
@@ -193,27 +193,42 @@ async function checkFont() {
 /* Your export lives in data/. The bundled sample lives in demo/ and is only
    reached when data/ is absent, so an update can never overwrite your text. */
 let DATA_DIR = 'data';
+const surahUrl = (kind, n) =>
+  (DATA_DIR === '.' ? `${kind}-${pad3(n)}.json` : `${DATA_DIR}/${kind}-${pad3(n)}.json`);
 
 async function loadIndex() {
+  /* Your export can sit in data/ or, if a web upload landed at the top level,
+     in the repository root. The bundled sample lives in demo/ and is marked
+     with a demo flag. Collect whatever is present and prefer real text — an
+     old sample index left behind in data/ must not shadow your export. */
+  const found = [];
   for (const dir of ['data', '.', 'demo']) {
-    const res = await fetch(`${dir}/index.json`, { cache: 'no-cache' }).catch(() => null);
-    if (res && res.ok) {
-      DATA_DIR = dir;
-      const idx = await res.json();
-      idx.demo = (dir === 'demo');
-      await DB.put('prefs', { k: 'index', v: idx });
-      return idx;
-    }
+    const url = (dir === '.' ? 'index.json' : `${dir}/index.json`);
+    const res = await fetch(url, { cache: 'no-cache' }).catch(() => null);
+    if (!res || !res.ok) continue;
+    const idx = await res.json().catch(() => null);
+    if (!idx || !idx.surahs) continue;
+    idx.demo = (dir === 'demo') || idx.demo === true;
+    found.push({ dir, idx });
   }
+
+  const pick = found.find(f => !f.idx.demo) || found[0];
+  if (pick) {
+    DATA_DIR = pick.dir;
+    await DB.put('prefs', { k: 'index', v: { ...pick.idx, dir: pick.dir } });
+    return pick.idx;
+  }
+
   const cached = await DB.get('prefs', 'index');
-  if (cached) { DATA_DIR = cached.v.demo ? 'demo' : 'data'; return cached.v; }
-  throw new Error('data/index.json not found');
+  if (cached) { DATA_DIR = cached.v.dir || 'data'; return cached.v; }
+  throw new Error('index.json not found');
 }
+
 
 async function loadSurah(n) {
   const cached = await DB.get('surahs', n);
   if (cached) return cached;
-  const res = await fetch(`${DATA_DIR}/surah-${pad3(n)}.json`.replace('./', '')).catch(() => null);
+  const res = await fetch(surahUrl('surah', n)).catch(() => null);
   if (!res || !res.ok) return null;
   const data = await res.json();
   await DB.put('surahs', data);
@@ -225,7 +240,7 @@ async function loadMorph(n) {
   if (cached) return cached;
   // Try regardless of what index.json advertises — a stale index should not
   // hide a file that is sitting right there.
-  const res = await fetch(`${DATA_DIR}/morph-${pad3(n)}.json`.replace('./', '')).catch(() => null);
+  const res = await fetch(surahUrl('morph', n)).catch(() => null);
   if (!res || !res.ok) return null;
   const data = await res.json();
   await DB.put('morph', data);
