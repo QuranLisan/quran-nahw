@@ -102,6 +102,32 @@ const notice = msg => {
   n.hidden = !msg;
 };
 
+/* ------------------------------------------------------------------ font */
+
+/* The Quran font can arrive two ways: served from fonts/ next to index.html,
+   or installed on the operating system. Android only ever honours the first.
+   Falling back silently means studying the wrong letterforms, so say so. */
+const FONT_NAMES = ['Quran IndoPak', 'AlQuran IndoPak by QuranWBW', 'Al Qalam Quran'];
+
+async function checkFont() {
+  const box = $('#fontNotice');
+  if (!box || !document.fonts || typeof document.fonts.check !== 'function') return;
+  try {
+    await Promise.all(FONT_NAMES.map(f =>
+      document.fonts.load(`30px "${f}"`, 'بسم').catch(() => {})));
+    if (document.fonts.ready) await document.fonts.ready;
+    const found = FONT_NAMES.find(f => document.fonts.check(`30px "${f}"`));
+    if (found) { box.hidden = true; return; }
+    box.textContent =
+      'Quran font not loaded — the text below is in a fallback face, not IndoPak. ' +
+      'Put your font file at fonts/quran.ttf (or fonts/quran.woff2) next to index.html. ' +
+      'On Android a font installed on the device cannot be used; it must be served with the app.';
+    box.hidden = false;
+  } catch {
+    box.hidden = true;
+  }
+}
+
 /* ------------------------------------------------------------------ data */
 
 /* Your export lives in data/. The bundled sample lives in demo/ and is only
@@ -782,6 +808,7 @@ function wire() {
     buildControls();
     wire();
     await refresh();
+    checkFont();
   } catch (err) {
     $('#sheet').innerHTML = '';
     const box = el('div', 'sheet__empty');

@@ -29,6 +29,26 @@ Settings › Show — that also restores the header row in the table layout.
 Fields keep their order top to bottom: Type, Form, I'rab, Structure, then Root
 and Meaning if you switch those on.
 
+## Getting the Quran font onto a phone or tablet
+
+Android **cannot** use a font installed on the device — the browser will not
+expose it to a web page. The font file has to sit next to `index.html`:
+
+    fonts/quran.ttf        (or fonts/quran.woff2)
+
+Whatever folder the phone loads the app from — a hosted copy, GitHub Pages, or
+a local folder — needs that file. Copying only `index.html`, `app.css` and
+`app.js` leaves the text in a fallback face that is not IndoPak.
+
+The app now checks on startup and shows a red bar if the font did not load, so
+you are never quietly reading the wrong letterforms. It looks for the served
+font first and for a system-installed one second, so a Windows machine with
+"AlQuran IndoPak by QuranWBW" installed will not raise a false alarm.
+
+If the file is present and the bar still shows, the host is probably serving
+`.ttf` with the wrong content type — converting to `.woff2` usually settles it
+and roughly halves the download.
+
 ## What this fixes
 
 Tokens with no Arabic letters — ayah markers and waqf signs your database

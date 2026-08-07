@@ -249,6 +249,8 @@ button, input, select { font: inherit; color: inherit; }
 }
 [data-theme="dark"] .notice { background: #2a2412; border-bottom-color: #4a3f1c; color: #d8c68a; }
 .notice[hidden] { display: none; }
+.notice--font { background: #fdeaea; border-bottom-color: #e8b4b4; color: #7a2a2a; }
+[data-theme="dark"] .notice--font { background: #2c1818; border-bottom-color: #4a2626; color: #e0a0a0; }
 
 /* ============================================================ sheet */
 
