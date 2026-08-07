@@ -14,7 +14,9 @@
 @font-face {
   font-family: "Quran IndoPak";
   src: url("fonts/quran.woff2") format("woff2"),
-       url("fonts/quran.ttf") format("truetype");
+       url("fonts/quran-indopak.woff2") format("woff2"),
+       url("fonts/quran.ttf") format("truetype"),
+       url("fonts/quran-indopak.ttf") format("truetype");
   font-display: swap;
 }
 @font-face {
