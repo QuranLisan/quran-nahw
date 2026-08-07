@@ -6,7 +6,37 @@ text, then either print it as a blank worksheet for S Pen handwriting, or type t
 
 ---
 
-## 1. Run it
+## 0. Publishing to GitHub Pages
+
+Push the whole folder, then in the repository go to **Settings → Pages** and
+set the source to your branch, root folder. The site appears at
+`https://<user>.github.io/<repo>/`.
+
+Everything is relative-path, so it works from a subfolder with no changes.
+`.nojekyll` is included so Pages serves the files as-is.
+
+Three things trip people up:
+
+1. **`fonts/quran.ttf` must be committed.** Android cannot use a font
+   installed on the device. See `fonts/README.md`.
+2. **`data/` must be committed.** The app reads JSON, not your database.
+3. **Filenames are case-sensitive on Pages but not on Windows.** `Quran.TTF`
+   works locally and 404s once published. Use lowercase.
+
+To verify after pushing, open these two URLs directly:
+
+    https://<user>.github.io/<repo>/fonts/quran.ttf
+    https://<user>.github.io/<repo>/data/index.json
+
+If either 404s, it was not committed. The app also shows a red bar naming
+every font path it tried and the status code it got back.
+
+On the tablet, open the site in Chrome and choose **Add to Home screen** to
+install it. It then runs full-screen and works offline.
+
+---
+
+## 1. Run it locally
 
 The app **must be served over HTTP**. Opening `index.html` by double-clicking it
 will not work — service workers and `fetch()` are blocked on `file://`.
@@ -51,8 +81,9 @@ system fallback.
 
 ## 3. Load the real Quranic text
 
-The app ships with six short surahs as demo text so you can try the layouts
-immediately. It is standard imlā'ī orthography, **not** Indo-Pak — replace it
+The app ships with six short surahs of sample text in `demo/`. It is used only
+when `data/` has no `index.json`, so **an update can never overwrite your
+export**. It is standard imlā'ī orthography, **not** Indo-Pak — replace it
 before doing real work. A yellow banner reminds you while demo data is loaded.
 
 ```
@@ -312,7 +343,8 @@ app.js                data loading, IndexedDB, rendering, save/export
 sw.js                 service worker — offline shell and data cache
 manifest.json         install metadata
 run.bat               starts a local server on Windows
-data/                 index.json + surah-001.json … surah-114.json
+data/                 YOUR export — never written to by an update
+demo/                 bundled sample text, used only when data/ is empty
 fonts/                quran.ttf / quran.woff2 (yours), urdu.ttf (optional)
 icons/                app icons
 tools/qul_export.py   QUL SQLite → data/

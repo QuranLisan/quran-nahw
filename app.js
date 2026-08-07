@@ -109,6 +109,45 @@ const notice = msg => {
    Falling back silently means studying the wrong letterforms, so say so. */
 const FONT_NAMES = ['Quran IndoPak', 'AlQuran IndoPak by QuranWBW', 'Al Qalam Quran'];
 
+/* GitHub Pages is case-sensitive; Windows is not. A file that works locally
+   as Quran.TTF will 404 once pushed. Rather than insist on one spelling, try
+   the likely ones and load whichever answers. */
+const FONT_FILES = [
+  'fonts/quran.woff2', 'fonts/quran.ttf',
+  'fonts/Quran.woff2', 'fonts/Quran.ttf', 'fonts/QURAN.TTF',
+  'fonts/quran-indopak.ttf', 'fonts/QuranIndoPak.ttf',
+  'fonts/AlQuranIndoPakByQuranWBW.ttf', 'fonts/indopak.ttf',
+];
+
+async function probe(url) {
+  for (const method of ['HEAD', 'GET']) {
+    try {
+      const res = await fetch(url, { method });
+      return res.status;
+    } catch { /* try the next method */ }
+  }
+  return 0;
+}
+
+async function loadFontFile() {
+  if (typeof FontFace !== 'function') return { url: null, tried: [] };
+  const tried = [];
+  for (const url of FONT_FILES) {
+    const status = await probe(url);
+    tried.push({ url, status });
+    if (status !== 200) continue;
+    try {
+      const face = new FontFace('Quran IndoPak', `url("${url}")`);
+      await face.load();
+      document.fonts.add(face);
+      return { url, tried };
+    } catch {
+      tried[tried.length - 1].status = 'unreadable';
+    }
+  }
+  return { url: null, tried };
+}
+
 async function checkFont() {
   const box = $('#fontNotice');
   if (!box || !document.fonts || typeof document.fonts.check !== 'function') return;
@@ -116,12 +155,25 @@ async function checkFont() {
     await Promise.all(FONT_NAMES.map(f =>
       document.fonts.load(`30px "${f}"`, 'بسم').catch(() => {})));
     if (document.fonts.ready) await document.fonts.ready;
-    const found = FONT_NAMES.find(f => document.fonts.check(`30px "${f}"`));
-    if (found) { box.hidden = true; return; }
+    if (FONT_NAMES.find(f => document.fonts.check(`30px "${f}"`))) { box.hidden = true; return; }
+
+    // CSS did not get it. Try the file directly under its likely names.
+    const { url, tried } = await loadFontFile();
+    if (url) {
+      box.hidden = true;
+      status(`Quran font loaded from ${url}`);
+      render(await loadSurah(S.surah));
+      return;
+    }
+
+    const missing = tried.filter(t => t.status !== 200)
+                         .map(t => `${t.url} → ${t.status || 'no response'}`);
     box.textContent =
-      'Quran font not loaded — the text below is in a fallback face, not IndoPak. ' +
-      'Put your font file at fonts/quran.ttf (or fonts/quran.woff2) next to index.html. ' +
-      'On Android a font installed on the device cannot be used; it must be served with the app.';
+      'Quran font not loaded — this text is a fallback face, not IndoPak. ' +
+      'Serve your font next to index.html as fonts/quran.ttf (lowercase). ' +
+      'On Android a font installed on the device cannot be used. Tried: ' +
+      missing.slice(0, 4).join(', ') +
+      (missing.length > 4 ? `, and ${missing.length - 4} more` : '');
     box.hidden = false;
   } catch {
     box.hidden = true;
