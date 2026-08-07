@@ -32,8 +32,9 @@
   --paper:      #e7ecf1;
   --sheet:      #ffffff;
   --sheet-tint: #fbfcfd;
-  --rule:       #c6d4e0;
-  --rule-firm:  #93a9bd;
+  --rule:       #ededef;
+  --rule-firm:  #e2e3e6;
+  --ref:        #b0b5bb;
   --madder:     #a32c2c;
   --sabz:       #1f5f4e;
 
@@ -54,6 +55,7 @@
   --q-size: 34px;
   --box-h: 34px;
 
+  --hair: 0.5px;
   --sheet-pad: 14mm;
   --tap: 34px;
   --gap: 8px;
@@ -70,8 +72,9 @@
   --paper:      #0f1319;
   --sheet:      #191d26;
   --sheet-tint: #1e232d;
-  --rule:       #38424f;
-  --rule-firm:  #55636f;
+  --rule:       #2a313a;
+  --rule-firm:  #333c46;
+  --ref:        #5a636c;
   --madder:     #e08585;
   --sabz:       #6fbfa5;
 
@@ -286,7 +289,7 @@ button, input, select { font: inherit; color: inherit; }
   gap: 4px 12px;
   padding-bottom: 7px;
   margin-bottom: 18px;
-  border-bottom: 1px solid var(--ink);
+  border-bottom: var(--hair) solid var(--rule-firm);
 }
 .sheet__title { margin: 0; font-size: clamp(16px, 2.4vw, 19px); font-weight: 700; }
 .sheet__range { font-family: var(--font-num); font-size: 12px; color: var(--ink-soft); letter-spacing: .04em; }
@@ -299,7 +302,7 @@ button, input, select { font: inherit; color: inherit; }
   gap: 4px 8px;
   margin-bottom: 8px;
   padding-bottom: 4px;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: var(--hair) solid var(--rule);
 }
 .ayah__no {
   flex: none;
@@ -322,7 +325,7 @@ button, input, select { font: inherit; color: inherit; }
   text-align: justify;
   margin-bottom: 14px;
   padding-bottom: 10px;
-  border-bottom: 1px dashed var(--rule);
+  border-bottom: var(--hair) dashed var(--rule);
 }
 .verseline__num {
   font-family: var(--font-ur);
@@ -334,16 +337,22 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---- تختی ---- */
 
+/* No gutters: cards share edges so the sheet reads as one ruled grid.
+   The container draws the top and start edges, each card the other two,
+   so no line is ever doubled. */
 .takhti {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
-  gap: 9px;
+  gap: 0;
+  border-top: var(--hair) solid var(--rule-firm);
+  border-inline-start: var(--hair) solid var(--rule-firm);
 }
 
 .card {
   min-width: 0;
-  border: 1px solid var(--rule-firm);
-  border-radius: 2px;
+  border: 0;
+  border-bottom: var(--hair) solid var(--rule-firm);
+  border-inline-end: var(--hair) solid var(--rule-firm);
   break-inside: avoid;
   overflow: hidden;
 }
@@ -353,7 +362,7 @@ button, input, select { font: inherit; color: inherit; }
   line-height: 1.9;
   text-align: center;
   padding: 4px 6px 2px;
-  border-bottom: 1px solid var(--rule-firm);
+  border-bottom: var(--hair) solid var(--rule);
   background: var(--sheet-tint);
   overflow-wrap: anywhere;
 }
@@ -361,30 +370,30 @@ button, input, select { font: inherit; color: inherit; }
   display: block;
   font-family: var(--font-num);
   font-size: 9px;
-  color: var(--rule-firm);
+  color: var(--ref);
   text-align: center;
   letter-spacing: .06em;
   padding-bottom: 2px;
   background: var(--sheet-tint);
-  border-bottom: 1px solid var(--rule-firm);
+  border-bottom: var(--hair) solid var(--rule);
 }
 .card__meaning {
   font-size: 12px;
   text-align: center;
   color: var(--ink-soft);
   padding: 2px 5px;
-  border-bottom: 1px solid var(--rule);
+  border-bottom: var(--hair) solid var(--rule);
   background: var(--sheet-tint);
 }
 
-.slot { display: flex; align-items: stretch; border-top: 1px solid var(--rule); min-height: var(--box-h); }
+.slot { display: flex; align-items: stretch; border-top: var(--hair) solid var(--rule); min-height: var(--box-h); }
 .slot:first-child { border-top: 0; }
 .slot__tag {
   flex: 0 0 auto;
   font-size: 10px;
   color: var(--ink-soft);
   padding: 3px 5px 0;
-  border-inline-end: 1px solid var(--rule);
+  border-inline-end: var(--hair) solid var(--rule);
   background: var(--panel);
   min-width: 44px;
   text-align: center;
@@ -403,7 +412,7 @@ button, input, select { font: inherit; color: inherit; }
 .slot--irab .slot__write { color: var(--madder); }
 
 .is-guides .slot__write {
-  background-image: linear-gradient(to bottom, transparent calc(100% - 1px), var(--rule) calc(100% - 1px));
+  background-image: linear-gradient(to bottom, transparent calc(100% - var(--hair)), var(--rule) calc(100% - var(--hair)));
   background-size: 100% var(--box-h);
   background-repeat: repeat-y;
 }
@@ -418,7 +427,7 @@ button, input, select { font: inherit; color: inherit; }
 
 .jadwal { width: 100%; border-collapse: collapse; }
 .jadwal th, .jadwal td {
-  border: 1px solid var(--rule-firm);
+  border: var(--hair) solid var(--rule-firm);
   padding: 3px 7px;
   vertical-align: top;
   text-align: start;
@@ -451,19 +460,19 @@ button, input, select { font: inherit; color: inherit; }
 .jadwal td.cell--write { min-width: 92px; height: var(--box-h); }
 .jadwal td.cell--irab { color: var(--madder); }
 .is-guides .jadwal td.cell--write {
-  background-image: linear-gradient(to bottom, transparent calc(100% - 1px), var(--rule) calc(100% - 1px));
+  background-image: linear-gradient(to bottom, transparent calc(100% - var(--hair)), var(--rule) calc(100% - var(--hair)));
   background-size: 100% var(--box-h);
 }
 
 /* ---- سطریں ---- */
 
 .satrain__lines {
-  border: 1px solid var(--rule-firm);
+  border: var(--hair) solid var(--rule-firm);
   background-image: repeating-linear-gradient(
       to bottom,
       transparent 0,
-      transparent calc(var(--box-h) - 1px),
-      var(--rule) calc(var(--box-h) - 1px),
+      transparent calc(var(--box-h) - var(--hair)),
+      var(--rule) calc(var(--box-h) - var(--hair)),
       var(--rule) var(--box-h));
 }
 .satrain__lines[contenteditable] { padding: 0 8px; font-size: 15px; line-height: var(--box-h); }
@@ -591,7 +600,7 @@ button, input, select { font: inherit; color: inherit; }
 @media print {
   :root, [data-theme="dark"] {
     --ink: #191d26; --ink-soft: #545d6c; --sheet: #fff; --sheet-tint: #fff;
-    --paper: #fff; --rule: #c6d4e0; --rule-firm: #93a9bd;
+    --paper: #fff;
     --madder: #a32c2c; --sabz: #1f5f4e; --panel: #fff;
   }
   html, body { background: #fff; }
@@ -619,11 +628,11 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---- تقطیع : segments within a word ---- */
 
-.card--split .card__word { border-bottom-width: 2px; }
+.card--split .card__word { border-bottom-color: var(--rule-firm); }
 .card__word .part { display: inline-block; padding: 0 5px; }
-.card__word .part + .part { border-inline-end: 1px solid var(--rule-firm); }
+.card__word .part + .part { border-inline-end: var(--hair) solid var(--rule-firm); }
 
-.seg { border-top: 2px solid var(--rule-firm); }
+.seg { border-top: var(--hair) solid var(--rule-firm); }
 .seg:first-of-type { border-top: 0; }
 .seg__text {
   font-family: var(--font-quran);
@@ -632,7 +641,7 @@ button, input, select { font: inherit; color: inherit; }
   text-align: center;
   padding: 2px 6px;
   background: var(--panel);
-  border-bottom: 1px solid var(--rule);
+  border-bottom: var(--hair) solid var(--rule);
 }
 .seg__pos {
   display: block;
@@ -644,5 +653,5 @@ button, input, select { font: inherit; color: inherit; }
 }
 .jadwal .row--cont td.cell--ref { color: var(--rule-firm); }
 .jadwal td.cell--word .part { display: inline-block; padding: 0 4px; }
-.jadwal td.cell--word .part + .part { border-inline-end: 1px solid var(--rule-firm); }
+.jadwal td.cell--word .part + .part { border-inline-end: var(--hair) solid var(--rule-firm); }
 .jadwal td.cell--word .seg__pos { font-size: 9px; }
