@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>Colour test</title>
+
+<link rel="stylesheet" href="app.css">
+
+<style>
+  body { font: 15px/1.6 system-ui, sans-serif; margin: 0; padding: 16px 14px 50px;
+         background: #fff; color: #191d26; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  p.lead { margin: 0 0 16px; color: #545d6c; font-size: 13px; }
+  .test { border: 1px solid #ccd; border-radius: 4px; padding: 12px; margin-bottom: 12px; }
+  .test b { display: block; font-size: 12px; letter-spacing: .05em; text-transform: uppercase;
+            color: #545d6c; margin-bottom: 8px; }
+  .ar { font-family: "Quran IndoPak", "AlQuran IndoPak by QuranWBW", serif;
+        font-size: 34px; line-height: 2; direction: rtl; text-align: center; }
+  .readout { font: 12px ui-monospace, Consolas, monospace; color: #545d6c;
+             margin-top: 8px; white-space: pre-line; }
+  #verdict { padding: 12px; border-radius: 4px; margin-bottom: 16px; font-size: 14px;
+             border: 1px solid; }
+  .good { background: #e3f1ec; border-color: #1f6b4f; }
+  .bad  { background: #fbe9e9; border-color: #a32c2c; }
+
+  /* Test 2 uses its own copy of the rules, independent of app.css */
+  .local .n { color: #1f6b4f; }
+  .local .v { color: #a32c2c; }
+  .local .p { color: #1a5fa5; }
+</style>
+</head>
+<body>
+
+<h1>Word colour test</h1>
+<p class="lead">Open this on the tablet. Each block colours the same words a different way.
+Which ones show colour tells us where the problem is.</p>
+
+<div id="verdict">Checking…</div>
+
+<div class="test">
+  <b>1 — inline colours, no stylesheet involved</b>
+  <div class="ar" id="inline">
+    <span style="color:#1f6b4f">إِيَّاكَ</span>
+    <span style="color:#a32c2c">نَعْبُدُ</span>
+    <span style="color:#1f6b4f">وَإِيَّاكَ</span>
+    <span style="color:#a32c2c">نَسْتَعِينُ</span>
+  </div>
+  <div class="readout" id="r1"></div>
+</div>
+
+<div class="test local">
+  <b>2 — colours from a stylesheet inside this page</b>
+  <div class="ar">
+    <span class="n">إِيَّاكَ</span>
+    <span class="v">نَعْبُدُ</span>
+    <span class="n">وَإِيَّاكَ</span>
+    <span class="v">نَسْتَعِينُ</span>
+  </div>
+  <div class="readout" id="r2"></div>
+</div>
+
+<div class="test">
+  <b>3 — colours from the app's own app.css</b>
+  <div class="sheet is-colored" id="viaapp" style="box-shadow:none;padding:0;min-height:0">
+    <div class="ar">
+      <span class="pos-N">إِيَّاكَ</span>
+      <span class="pos-V">نَعْبُدُ</span>
+      <span class="pos-N">وَإِيَّاكَ</span>
+      <span class="pos-V">نَسْتَعِينُ</span>
+    </div>
+  </div>
+  <div class="readout" id="r3"></div>
+</div>
+
+<div class="test">
+  <b>4 — the same markup with colouring switched off</b>
+  <div class="sheet" id="off" style="box-shadow:none;padding:0;min-height:0">
+    <div class="ar">
+      <span class="pos-N">إِيَّاكَ</span>
+      <span class="pos-V">نَعْبُدُ</span>
+    </div>
+  </div>
+  <div class="readout" id="r4"></div>
+  <div class="readout">These two should be black — that is what the app looks like with the
+  checkbox off.</div>
+</div>
+
+<script>
+var root = document.documentElement;
+function colourOf(el) { return getComputedStyle(el).color.replace(/\s/g, ''); }
+
+// --ism only exists if app.css actually loaded and parsed
+var ismVar = getComputedStyle(root).getPropertyValue('--ism').trim();
+var cssLoaded = !!ismVar;
+
+var offColour = colourOf(document.querySelector('#off .pos-N'));   // the control
+var c1 = colourOf(document.querySelector('#inline span'));
+var c2 = colourOf(document.querySelector('.local .n'));
+var c3 = colourOf(document.querySelector('#viaapp .pos-N'));
+
+function show(id, got, ok, note) {
+  document.getElementById(id).textContent =
+    'computed: ' + got + '  ' + (ok ? 'coloured' : 'NOT coloured') + (note ? '  ' + note : '');
+}
+var t1 = c1 !== offColour;
+var t2 = c2 !== offColour;
+var t3 = cssLoaded && c3 !== offColour;
+show('r1', c1, t1);
+show('r2', c2, t2);
+show('r3', c3, t3, cssLoaded ? '(--ism = ' + ismVar + ')' : '(app.css did NOT load)');
+document.getElementById('r4').textContent = 'computed: ' + offColour + '  this is the control';
+
+var msg, good = false;
+if (!t1) {
+  msg = 'Even inline colours are not applied. The device is overriding page colours \u2014 usually ' +
+        'Chrome Auto Dark Mode, Samsung Internet dark mode, or a high-contrast accessibility ' +
+        'setting. Switch that off for this site and reload.';
+} else if (!cssLoaded) {
+  msg = 'app.css did not load or is an old copy without the colour tokens. If it is in the ' +
+        'repository, the tablet is serving a cached version: Chrome \u2192 Settings \u2192 Site settings ' +
+        '\u2192 All sites \u2192 this site \u2192 Clear & reset.';
+} else if (!t3) {
+  msg = 'app.css loaded but its colour rules did not apply. Send a photo of this page.';
+} else {
+  msg = 'Colours work on this device and app.css is current. So the app is simply not switched ' +
+        'on: open it, go to Settings \u203a Show, and tick "Colour by word type". Check the build ' +
+        'number at the bottom of Settings \u203a Files reads 13.';
+  good = true;
+}
+var v = document.getElementById('verdict');
+v.textContent = msg;
+v.className = good ? 'good' : 'bad';
+</script>
+</body>
+</html>
