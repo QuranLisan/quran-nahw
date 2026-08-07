@@ -7,7 +7,7 @@
    build a device is actually running — clearing "cached images and files" on
    Android does NOT clear a service worker's Cache Storage, so a stale copy can
    survive a refresh and look identical. */
-const BUILD = 14;
+const BUILD = 16;
 
 /* ------------------------------------------------------------------ config */
 
@@ -195,7 +195,7 @@ async function checkFont() {
 let DATA_DIR = 'data';
 
 async function loadIndex() {
-  for (const dir of ['data', 'demo']) {
+  for (const dir of ['data', '.', 'demo']) {
     const res = await fetch(`${dir}/index.json`, { cache: 'no-cache' }).catch(() => null);
     if (res && res.ok) {
       DATA_DIR = dir;
@@ -213,7 +213,7 @@ async function loadIndex() {
 async function loadSurah(n) {
   const cached = await DB.get('surahs', n);
   if (cached) return cached;
-  const res = await fetch(`${DATA_DIR}/surah-${pad3(n)}.json`).catch(() => null);
+  const res = await fetch(`${DATA_DIR}/surah-${pad3(n)}.json`.replace('./', '')).catch(() => null);
   if (!res || !res.ok) return null;
   const data = await res.json();
   await DB.put('surahs', data);
@@ -225,7 +225,7 @@ async function loadMorph(n) {
   if (cached) return cached;
   // Try regardless of what index.json advertises — a stale index should not
   // hide a file that is sitting right there.
-  const res = await fetch(`${DATA_DIR}/morph-${pad3(n)}.json`).catch(() => null);
+  const res = await fetch(`${DATA_DIR}/morph-${pad3(n)}.json`.replace('./', '')).catch(() => null);
   if (!res || !res.ok) return null;
   const data = await res.json();
   await DB.put('morph', data);
@@ -236,6 +236,9 @@ async function loadMorph(n) {
    medallion glyph only. Skip it, but keep the original index so note keys
    and morphology alignment stay put. */
 const HAS_LETTER = /[\u0620-\u063F\u0641-\u064A\u066E-\u066F\u0671-\u06D3\u06EE-\u06EF\u06FA-\u06FF]/;
+/* Glyph-based scripts pack a whole word into one Private Use codepoint —
+   18:19:34 وليتلطف is a single glyph — so a PUA token is a word, not a marker. */
+const HAS_PUA = /[\uE000-\uF8FF]/;
 
 function realWords(verse) {
   const out = [];
@@ -245,7 +248,7 @@ function realWords(verse) {
     // morphology is keyed on word index. Numbering the real words 1..n makes
     // dirty data render exactly like a clean export — so segmentation lands
     // correctly and saved answers survive a re-export.
-    if (HAS_LETTER.test(t)) out.push({ t, i: out.length + 1 });
+    if (HAS_LETTER.test(t) || HAS_PUA.test(t)) out.push({ t, i: out.length + 1 });
   }
   return out;
 }
