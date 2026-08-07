@@ -1,45 +1,41 @@
+# Why the text stayed black
+
+The colour comes from `data/morph-*.json`. The files on your site were built by
+the earlier importer, which only recorded where to cut words — it had no word
+categories, because colouring did not exist yet. The app found the files, used
+them for splitting, and had nothing to colour with.
+
 # Upload these
+
+Into `data/`, replacing what is there:
+
+    data/morph-001.json
+    data/morph-103.json
+    data/morph-108.json
+    data/morph-112.json
+    data/morph-113.json
+    data/morph-114.json
 
 Into the repository root, replacing what is there:
 
-    index.html
-    app.css
     app.js
     sw.js
 
-Into `tools/`:
-
-    tools/morph_import.py
-
-The `demo/` files here are only the sample morphology, refreshed for the new
-format. Upload them only if you are still using the sample text.
-
 Then clear Chrome's cached files on the tab and reopen the site.
 
-## Lines layout
+Turn on Settings › Show › **Colour by word type**.
 
-The ayah is now centred above the ruled lines, along with its reference and
-translation.
+## Two things app.js now does better
 
-## Colour by word type
+It says so when a morphology file is too old to carry colours, instead of
+leaving you to guess why nothing happened.
 
-Settings › Show › **Colour by word type**. Off by default.
+It also looks for `morph-*.json` even when `index.json` does not list it. The
+old behaviour trusted the index, so a file sitting right there could be ignored.
 
-    green   ism
-    red     fi'l
-    blue    harf
+## When you re-export your own text
 
-It applies to the cards, the table, the full ayah line, and to each part
-separately when word splitting is on — so بِ shows blue and سْمِ green.
-
-**This needs the morphology import.** The colours are the corpus's
-classification, not a guess:
+These six files match the sample text currently in your `data/` folder. Once
+you export your own IndoPak text, regenerate them:
 
     python tools\morph_import.py --morph quran-morphology.txt --data data
-
-Without it the setting does nothing and the sheet stays black. Get
-`quran-morphology.txt` from github.com/mustafa0x/quran-morphology.
-
-A word's category ignores its prefixes, which is what a student would expect:
-بِسْمِ is ism despite the بِ, and عَلَيْهِمْ is harf despite the pronoun on
-the end.

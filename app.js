@@ -216,7 +216,8 @@ async function loadSurah(n) {
 async function loadMorph(n) {
   const cached = await DB.get('morph', n);
   if (cached) return cached;
-  if (!S.index.morph || !S.index.morph.surahs.includes(n)) return null;
+  // Try regardless of what index.json advertises — a stale index should not
+  // hide a file that is sitting right there.
   const res = await fetch(`${DATA_DIR}/morph-${pad3(n)}.json`).catch(() => null);
   if (!res || !res.ok) return null;
   const data = await res.json();
@@ -550,9 +551,13 @@ async function refresh() {
   S.morph = await loadMorph(S.surah);
   const attr = $('#morphAttr');
   if (attr) {
-    attr.textContent = S.morph
-      ? (S.index.morph && S.index.morph.source) || ''
-      : 'No splitting data for this surah. Optional — run tools/morph_import.py if you want it.';
+    if (!S.morph) {
+      attr.textContent = 'No morphology for this surah. Optional — run tools/morph_import.py to enable splitting and colour.';
+    } else if (!S.morph.pos) {
+      attr.textContent = 'This morphology file predates word colours — re-run tools/morph_import.py to add them. Splitting still works.';
+    } else {
+      attr.textContent = (S.index.morph && S.index.morph.source) || '';
+    }
   }
   if (!data) {
     notice(`No text for surah ${S.surah}. Run tools/qul_export.py to build data/.`);
