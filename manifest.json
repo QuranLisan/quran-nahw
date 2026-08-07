@@ -1,0 +1,18 @@
+{
+  "name": "نحوی مشق — قرآن",
+  "short_name": "نحوی مشق",
+  "description": "قرآنی متن کی نحوی ترکیب کے لیے مشقی شیٹ — ہاتھ سے لکھیں یا ٹائپ کریں",
+  "lang": "ur",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#e7ecf1",
+  "theme_color": "#191d26",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

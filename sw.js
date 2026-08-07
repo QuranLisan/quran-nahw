@@ -1,72 +1,65 @@
-/* نحوِ قرآن — service worker
-   Bump CACHE when you change any shell file, otherwise the old copy
-   keeps serving. */
-const CACHE = 'quran-nahw-v14';
+/* نحوی مشق — service worker
+   App shell is precached. Data and fonts are cached on first use. */
 
+const VERSION = 'nahw-v1';
 const SHELL = [
   './',
   'index.html',
-  'css/app.css',
-  'js/app.js',
-  'js/import.js',
-  'js/draw.js',
-  'js/export.js',
-  'vendor/jspdf.min.js',
-  'vendor/html2canvas.min.js',
-  'manifest.webmanifest',
-  'fonts/quran-indopak.woff2',
-  'fonts/quran-indopak.ttf',
-  'data/quran-data.json',
-  'vendor/sql-wasm.js',
-  'vendor/sql-wasm.wasm',
+  'app.css',
+  'app.js',
+  'manifest.json',
+  'data/index.json',
+  'icons/icon-192.png',
+  'icons/icon-512.png',
 ];
 
-self.addEventListener('install', (e) => {
-  e.waitUntil((async () => {
-    const c = await caches.open(CACHE);
-    // addAll fails the whole install if one file 404s; add individually.
-    await Promise.all(SHELL.map((u) => c.add(u).catch(() => {})));
-    self.skipWaiting();
-  })());
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(VERSION)
+      .then(c => c.addAll(SHELL))
+      .then(() => self.skipWaiting())
+      .catch(() => self.skipWaiting())
+  );
 });
 
-self.addEventListener('activate', (e) => {
-  e.waitUntil((async () => {
-    const keys = await caches.keys();
-    await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
-    await self.clients.claim();
-  })());
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
 });
 
-self.addEventListener('fetch', (e) => {
+self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
-
   const url = new URL(req.url);
-  if (url.origin !== location.origin) return;
+  if (url.origin !== self.location.origin) return;
 
-  // Navigations: network first, fall back to the cached shell.
-  if (req.mode === 'navigate') {
-    e.respondWith((async () => {
-      try { return await fetch(req); }
-      catch (_) { return (await caches.match('index.html')) || Response.error(); }
-    })());
+  // index.json: network first so a fresh export shows up immediately
+  if (url.pathname.endsWith('data/index.json')) {
+    e.respondWith(
+      fetch(req)
+        .then(res => {
+          const copy = res.clone();
+          caches.open(VERSION).then(c => c.put(req, copy));
+          return res;
+        })
+        .catch(() => caches.match(req))
+    );
     return;
   }
 
-  // Everything else: cache first, then fill the cache in the background.
-  e.respondWith((async () => {
-    const hit = await caches.match(req);
-    if (hit) return hit;
-    try {
-      const res = await fetch(req);
+  // everything else: cache first, fill in behind
+  e.respondWith(
+    caches.match(req).then(hit => hit || fetch(req).then(res => {
       if (res.ok) {
-        const c = await caches.open(CACHE);
-        c.put(req, res.clone());
+        const copy = res.clone();
+        caches.open(VERSION).then(c => c.put(req, copy));
       }
       return res;
-    } catch (_) {
-      return new Response('', { status: 504 });
-    }
-  })());
+    }).catch(() => new Response('آف لائن — یہ فائل محفوظ نہیں', {
+      status: 504, headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+    })))
+  );
 });

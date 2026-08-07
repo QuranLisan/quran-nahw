@@ -1,0 +1,644 @@
+/* ============================================================
+   نحوی مشق — design tokens
+
+   Direction: the madrasa copybook (تختی / قطعہ). Ruled blue
+   writing guides, hairline jadwal, madder-red reserved for
+   i'rab, green reserved for Quranic chrome. Nothing else
+   gets colour.
+
+   Layout rule: one DOM, four shapes — phone, tablet portrait,
+   laptop, wide desktop. Nothing is duplicated per breakpoint;
+   elements move.
+   ============================================================ */
+
+@font-face {
+  font-family: "Quran IndoPak";
+  src: url("fonts/quran.woff2") format("woff2"),
+       url("fonts/quran.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Urdu UI";
+  src: url("fonts/urdu.woff2") format("woff2"),
+       url("fonts/urdu.ttf") format("truetype");
+  font-display: swap;
+}
+
+:root {
+  --ink:        #191d26;
+  --ink-soft:   #545d6c;
+  --paper:      #e7ecf1;
+  --sheet:      #ffffff;
+  --sheet-tint: #fbfcfd;
+  --rule:       #c6d4e0;
+  --rule-firm:  #93a9bd;
+  --madder:     #a32c2c;
+  --sabz:       #1f5f4e;
+
+  --chrome:     #191d26;
+  --chrome-fg:  #eef2f6;
+  --chrome-dim: #9aa6b4;
+  --chrome-in:  #262c36;
+  --chrome-br:  #3d4653;
+
+  --panel:      #f5f7f9;
+  --panel-br:   #d3dae1;
+  --ctrl-br:    #c3ccd6;
+
+  --font-quran: "Quran IndoPak", "AlQuran IndoPak by QuranWBW", "Al Qalam Quran", "Noto Nastaliq Urdu", serif;
+  --font-ur:    "Urdu UI", "Noto Naskh Arabic", "Segoe UI", "Tahoma", system-ui, sans-serif;
+  --font-num:   ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+
+  --q-size: 34px;
+  --box-h: 34px;
+
+  --sheet-pad: 14mm;
+  --tap: 34px;
+  --gap: 8px;
+  --r: 3px;
+
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-s: env(safe-area-inset-left, 0px);
+  --safe-e: env(safe-area-inset-right, 0px);
+}
+
+[data-theme="dark"] {
+  --ink:        #dfe6ee;
+  --ink-soft:   #9aa6b4;
+  --paper:      #0f1319;
+  --sheet:      #191d26;
+  --sheet-tint: #1e232d;
+  --rule:       #38424f;
+  --rule-firm:  #55636f;
+  --madder:     #e08585;
+  --sabz:       #6fbfa5;
+
+  --chrome:     #0b0e13;
+  --chrome-fg:  #dfe6ee;
+  --chrome-dim: #78838f;
+  --chrome-in:  #1a1f28;
+  --chrome-br:  #2c343f;
+
+  --panel:      #161a22;
+  --panel-br:   #2c343f;
+  --ctrl-br:    #38424f;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ur);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-wrap: break-word;
+}
+
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--madder); outline-offset: 2px; }
+
+/* Touch devices get larger hit areas. Never affects a print metric. */
+@media screen and (pointer: coarse) {
+  :root { --tap: 44px; }
+}
+
+/* ============================================================ top bar */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--gap) 14px;
+  padding: 9px calc(16px + var(--safe-e)) 9px calc(16px + var(--safe-s));
+  background: var(--chrome);
+  color: var(--chrome-fg);
+  border-bottom: 3px double var(--chrome-br);
+}
+
+.bar__brand { display: flex; align-items: center; gap: 8px; padding-inline-end: 6px; }
+.bar__mark {
+  width: 15px; height: 21px; flex: none;
+  border: 1px solid var(--chrome-dim);
+  border-radius: 1px;
+  background: repeating-linear-gradient(to bottom, transparent 0 5px, var(--chrome-dim) 5px 6px);
+}
+.bar__name { font-size: 16px; white-space: nowrap; }
+
+.bar__group { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--gap); }
+.bar__group--main { flex: 1 1 auto; min-width: 0; }
+.bar__group--end { margin-inline-start: auto; }
+
+.field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.field__label { font-size: 11px; color: var(--chrome-dim); line-height: 1; }
+.field__input {
+  background: var(--chrome-in);
+  border: 1px solid var(--chrome-br);
+  border-radius: var(--r);
+  color: var(--chrome-fg);
+  padding: 5px 8px;
+  min-height: var(--tap);
+  max-width: 100%;
+}
+.field--surah { flex: 1 1 180px; max-width: 280px; }
+.field--surah .field__input { width: 100%; }
+.field--num { flex: 0 0 auto; }
+.field--num .field__input { width: 68px; font-family: var(--font-num); text-align: center; }
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: var(--r);
+  padding: 6px 13px;
+  min-height: var(--tap);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s ease, border-color .12s ease;
+}
+.btn--ghost { background: transparent; border-color: var(--chrome-br); color: #cfd8e2; }
+.btn--ghost:hover { background: var(--chrome-in); }
+.btn--solid { background: var(--chrome-fg); color: var(--chrome); font-weight: 600; }
+.btn--solid:hover { filter: brightness(1.06); }
+.btn--danger { border-color: #6d3535; color: #e3a3a3; }
+.btn--danger:hover { background: #3a2323; }
+
+.seg { display: inline-flex; border: 1px solid var(--chrome-br); border-radius: var(--r); overflow: hidden; }
+.seg--wide { display: flex; width: 100%; }
+.seg__btn {
+  background: transparent;
+  border: 0;
+  border-inline-start: 1px solid var(--chrome-br);
+  color: #cfd8e2;
+  padding: 6px 13px;
+  min-height: var(--tap);
+  cursor: pointer;
+  flex: 1 1 auto;
+  white-space: nowrap;
+}
+.seg__btn:first-child { border-inline-start: 0; }
+.seg__btn.is-on { background: var(--chrome-fg); color: var(--chrome); font-weight: 600; }
+
+/* ============================================================ shell */
+
+.shell { display: block; }
+
+.settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px 26px;
+  padding: 18px calc(16px + var(--safe-e)) 22px calc(16px + var(--safe-s));
+  background: var(--panel);
+  border-bottom: 1px solid var(--panel-br);
+}
+.settings[hidden] { display: none; }
+
+.settings__close { display: none; }
+
+.settings__h {
+  margin: 0 0 9px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+.settings__note { margin: 8px 0 0; font-size: 12px; color: var(--ink-soft); }
+.settings .seg { border-color: var(--ctrl-br); }
+.settings .seg__btn { border-inline-start-color: var(--ctrl-br); color: var(--ink-soft); }
+.settings .seg__btn.is-on { background: var(--ink); color: var(--sheet); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--ctrl-br);
+  border-radius: 999px;
+  padding: 4px 12px;
+  min-height: max(30px, calc(var(--tap) - 10px));
+  background: var(--sheet);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+.chip input { accent-color: var(--madder); margin: 0; }
+.chip:has(input:checked) { border-color: var(--ink); background: var(--ink); color: var(--sheet); }
+
+.slider { display: block; margin-bottom: 12px; font-size: 12px; color: var(--ink-soft); }
+.slider span { display: block; margin-bottom: 3px; }
+.slider b { font-family: var(--font-num); color: var(--ink); }
+.slider input { width: 100%; accent-color: var(--ink); min-height: 24px; }
+
+.stack { display: flex; flex-direction: column; gap: 6px; }
+.stack .btn { border-color: var(--ctrl-br); color: var(--ink-soft); text-align: center; background: transparent; }
+.stack .btn:hover { background: var(--paper); }
+.stack .btn--danger { border-color: #d8b4b4; color: var(--madder); }
+
+.notice {
+  padding: 9px calc(16px + var(--safe-e)) 9px calc(16px + var(--safe-s));
+  background: #fff6e0;
+  border-bottom: 1px solid #e8d9ae;
+  font-size: 13px;
+  color: #6b5416;
+}
+[data-theme="dark"] .notice { background: #2a2412; border-bottom-color: #4a3f1c; color: #d8c68a; }
+.notice[hidden] { display: none; }
+
+/* ============================================================ sheet */
+
+.stage {
+  padding: 22px calc(12px + var(--safe-e)) calc(70px + var(--safe-b)) calc(12px + var(--safe-s));
+  display: flex;
+  justify-content: center;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 100%;
+  min-height: 50vh;
+  padding: var(--sheet-pad);
+  background: var(--sheet);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 12%), 0 10px 30px rgb(0 0 0 / 10%);
+}
+
+/* A4 preview: exact print width, offered only where it fits. */
+.stage[data-paper="a4"] .sheet { width: 210mm; }
+/* Screen: fill the space, capped so lines stay readable on wide displays. */
+.stage[data-paper="fit"] .sheet { max-width: 1100px; --sheet-pad: clamp(10px, 3.5vw, 14mm); }
+
+.sheet__empty { padding: 48px 0; text-align: center; color: var(--ink-soft); }
+
+.sheet__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding-bottom: 7px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--ink);
+}
+.sheet__title { margin: 0; font-size: clamp(16px, 2.4vw, 19px); font-weight: 700; }
+.sheet__range { font-family: var(--font-num); font-size: 12px; color: var(--ink-soft); letter-spacing: .04em; }
+
+.ayah { margin-bottom: 26px; break-inside: avoid; }
+.ayah__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--rule);
+}
+.ayah__no {
+  flex: none;
+  font-family: var(--font-num);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sabz);
+  border: 1px solid var(--sabz);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.ayah__trans { font-size: 14px; color: var(--ink-soft); line-height: 1.9; min-width: 0; }
+
+/* full verse; ayah number in the UI font so the Quran font's calt
+   medallion substitution never fires */
+.verseline {
+  font-family: var(--font-quran);
+  font-size: calc(var(--q-size) * .92);
+  line-height: 2.05;
+  text-align: justify;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--rule);
+}
+.verseline__num {
+  font-family: var(--font-ur);
+  font-size: 15px;
+  color: var(--sabz);
+  padding: 0 4px;
+  vertical-align: .15em;
+}
+
+/* ---- تختی ---- */
+
+.takhti {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
+  gap: 9px;
+}
+
+.card {
+  min-width: 0;
+  border: 1px solid var(--rule-firm);
+  border-radius: 2px;
+  break-inside: avoid;
+  overflow: hidden;
+}
+.card__word {
+  font-family: var(--font-quran);
+  font-size: var(--q-size);
+  line-height: 1.9;
+  text-align: center;
+  padding: 4px 6px 2px;
+  border-bottom: 1px solid var(--rule-firm);
+  background: var(--sheet-tint);
+  overflow-wrap: anywhere;
+}
+.card__ref {
+  display: block;
+  font-family: var(--font-num);
+  font-size: 9px;
+  color: var(--rule-firm);
+  text-align: center;
+  letter-spacing: .06em;
+  padding-bottom: 2px;
+  background: var(--sheet-tint);
+  border-bottom: 1px solid var(--rule-firm);
+}
+.card__meaning {
+  font-size: 12px;
+  text-align: center;
+  color: var(--ink-soft);
+  padding: 2px 5px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--sheet-tint);
+}
+
+.slot { display: flex; align-items: stretch; border-top: 1px solid var(--rule); min-height: var(--box-h); }
+.slot:first-child { border-top: 0; }
+.slot__tag {
+  flex: 0 0 auto;
+  font-size: 10px;
+  color: var(--ink-soft);
+  padding: 3px 5px 0;
+  border-inline-end: 1px solid var(--rule);
+  background: var(--panel);
+  min-width: 44px;
+  text-align: center;
+  line-height: 1.25;
+}
+.slot--irab .slot__tag { color: var(--madder); }
+.slot__write {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--box-h);
+  padding: 2px 6px;
+  font-size: 14px;
+  line-height: var(--box-h);
+  overflow-wrap: anywhere;
+}
+.slot--irab .slot__write { color: var(--madder); }
+
+.is-guides .slot__write {
+  background-image: linear-gradient(to bottom, transparent calc(100% - 1px), var(--rule) calc(100% - 1px));
+  background-size: 100% var(--box-h);
+  background-repeat: repeat-y;
+}
+
+[contenteditable]:empty::before { content: attr(data-ph); color: var(--rule-firm); }
+[contenteditable] { outline: none; }
+[contenteditable]:focus { background: color-mix(in srgb, var(--madder) 7%, transparent); }
+
+/* ---- جدول ---- */
+
+.tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.jadwal { width: 100%; border-collapse: collapse; }
+.jadwal th, .jadwal td {
+  border: 1px solid var(--rule-firm);
+  padding: 3px 7px;
+  vertical-align: top;
+  text-align: start;
+}
+.jadwal th {
+  background: var(--panel);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.jadwal th.is-irab { color: var(--madder); }
+.jadwal td.cell--word {
+  font-family: var(--font-quran);
+  font-size: var(--q-size);
+  line-height: 1.85;
+  text-align: center;
+  white-space: nowrap;
+  width: 1%;
+  background: var(--sheet-tint);
+}
+.jadwal td.cell--ref {
+  font-family: var(--font-num);
+  font-size: 10px;
+  color: var(--ink-soft);
+  text-align: center;
+  width: 1%;
+  white-space: nowrap;
+}
+.jadwal td.cell--write { min-width: 92px; height: var(--box-h); }
+.jadwal td.cell--irab { color: var(--madder); }
+.is-guides .jadwal td.cell--write {
+  background-image: linear-gradient(to bottom, transparent calc(100% - 1px), var(--rule) calc(100% - 1px));
+  background-size: 100% var(--box-h);
+}
+
+/* ---- سطریں ---- */
+
+.satrain__lines {
+  border: 1px solid var(--rule-firm);
+  background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--box-h) - 1px),
+      var(--rule) calc(var(--box-h) - 1px),
+      var(--rule) var(--box-h));
+}
+.satrain__lines[contenteditable] { padding: 0 8px; font-size: 15px; line-height: var(--box-h); }
+
+/* ============================================================ status */
+
+.statusbar {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: 30;
+  padding: 6px calc(16px + var(--safe-e)) calc(6px + var(--safe-b)) calc(16px + var(--safe-s));
+  background: color-mix(in srgb, var(--chrome) 94%, transparent);
+  color: var(--chrome-dim);
+  font-size: 12px;
+  font-family: var(--font-num);
+  backdrop-filter: blur(4px);
+}
+.statusbar:empty { display: none; }
+
+/* ============================================================ phone
+   ≤ 640px: primary actions move to a thumb-reachable dock, settings
+   become a full-height drawer, A4 preview is suppressed.            */
+
+@media screen and (max-width: 640px) {
+  .bar { padding-block: 7px; gap: 6px 10px; }
+  .bar__name { display: none; }
+  .bar__group--main { flex-basis: 100%; }
+  .field--surah { flex: 1 1 100%; max-width: none; }
+
+  .bar__group--end {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 41;
+    margin: 0;
+    padding: 7px 10px calc(7px + var(--safe-b));
+    background: var(--chrome);
+    border-top: 1px solid var(--chrome-br);
+    gap: 6px;
+  }
+  .bar__group--end > * { flex: 1 1 0; min-width: 0; }
+  .bar__group--end .seg { flex: 2 1 0; }
+  .bar__group--end .btn { padding-inline: 6px; }
+
+  .statusbar { inset-block-end: calc(var(--tap) + 14px + var(--safe-b)); }
+  .stage { padding-block-end: calc(var(--tap) + 40px + var(--safe-b)); }
+
+  .settings {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 22px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-block-end: calc(40px + var(--safe-b));
+    border: 0;
+  }
+  .settings__close {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: -18px -16px 0;
+    width: calc(100% + 32px);
+    padding: 12px 16px;
+    background: var(--panel);
+    border: 0;
+    border-bottom: 1px solid var(--panel-br);
+    text-align: start;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--ink);
+  }
+
+  .sheet { --sheet-pad: 12px; }
+  .slot__tag { min-width: 38px; font-size: 9px; }
+}
+
+/* narrow jadwal: keep the word anchored while the fields scroll */
+@media screen and (max-width: 780px) {
+  .jadwal td.cell--word, .jadwal th:first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+  }
+  .jadwal th:first-child { background: var(--panel); }
+}
+
+/* ============================================================ desktop
+   ≥ 1200px: settings become a side rail instead of a band that
+   pushes the sheet down the page.                                   */
+
+@media screen and (min-width: 1200px) {
+  .shell {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+  .settings {
+    position: sticky;
+    top: 0;
+    width: 320px;
+    max-height: 100dvh;
+    overflow-y: auto;
+    grid-template-columns: 1fr;
+    gap: 22px;
+    border-bottom: 0;
+    border-inline-end: 1px solid var(--panel-br);
+  }
+  .stage { padding-inline: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
+
+/* ============================================================ print
+   Always A4, always light, regardless of screen theme or paper mode. */
+
+@page { size: A4 portrait; margin: 12mm 10mm 14mm; }
+
+@media print {
+  :root, [data-theme="dark"] {
+    --ink: #191d26; --ink-soft: #545d6c; --sheet: #fff; --sheet-tint: #fff;
+    --paper: #fff; --rule: #c6d4e0; --rule-firm: #93a9bd;
+    --madder: #a32c2c; --sabz: #1f5f4e; --panel: #fff;
+  }
+  html, body { background: #fff; }
+  .bar, .settings, .statusbar, .notice { display: none !important; }
+  .shell { display: block !important; }
+  .stage,
+  .stage[data-paper="a4"],
+  .stage[data-paper="fit"] { padding: 0; display: block; }
+  .sheet,
+  .stage[data-paper="a4"] .sheet,
+  .stage[data-paper="fit"] .sheet {
+    width: auto;
+    max-width: none;
+    min-height: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  .tablewrap { overflow: visible; }
+  .jadwal td.cell--word, .jadwal th:first-child { position: static; }
+  .ayah, .card, .jadwal tr { break-inside: avoid; }
+  .jadwal thead { display: table-header-group; }
+  [contenteditable]:focus { background: transparent; }
+  [contenteditable]:empty::before { content: ""; }
+}
+
+/* ---- تقطیع : segments within a word ---- */
+
+.card--split .card__word { border-bottom-width: 2px; }
+.card__word .part { display: inline-block; padding: 0 5px; }
+.card__word .part + .part { border-inline-end: 1px solid var(--rule-firm); }
+
+.seg { border-top: 2px solid var(--rule-firm); }
+.seg:first-of-type { border-top: 0; }
+.seg__text {
+  font-family: var(--font-quran);
+  font-size: calc(var(--q-size) * .86);
+  line-height: 1.8;
+  text-align: center;
+  padding: 2px 6px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--rule);
+}
+.seg__pos {
+  display: block;
+  font-family: var(--font-ur);
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--ink-soft);
+  padding-bottom: 2px;
+}
+.jadwal .row--cont td.cell--ref { color: var(--rule-firm); }
+.jadwal td.cell--word .part { display: inline-block; padding: 0 4px; }
+.jadwal td.cell--word .part + .part { border-inline-end: 1px solid var(--rule-firm); }
+.jadwal td.cell--word .seg__pos { font-size: 9px; }

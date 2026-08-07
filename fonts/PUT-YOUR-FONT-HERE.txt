@@ -1,0 +1,14 @@
+Copy your Indo-Pak Quran font here as:
+
+    quran.ttf      (or quran.woff2)
+
+Use the "AlQuran IndoPak by QuranWBW" TTF from
+qul.tarteel.ai/resources/font/242 — the same file you use in Word.
+
+Optional Urdu interface font:
+
+    urdu.ttf       (or urdu.woff2)
+
+If you leave this folder empty the app falls back to whatever Urdu/Arabic
+fonts are installed on the system, which works on Windows but usually not
+on Android.

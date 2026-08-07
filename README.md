@@ -1,234 +1,332 @@
-# Quran Nahw — Worksheet App
+# نحوی مشق — Quran Nahw worksheet app
 
-A progressive web app that turns any range of Quranic text into a worksheet —
-either blank for handwriting with the S Pen, or with typing fields that save
-locally and persist between sessions.
-
-Works offline once installed. No server, no account, no build step.
+A small offline-first web app for نحوی ترکیب practice. Pick any range of Quranic
+text, then either print it as a blank worksheet for S Pen handwriting, or type the
+ترکیب directly into the browser and have it saved on the device.
 
 ---
 
-## Setup
+## 1. Run it
 
-Nothing to install. Serve the folder and open it:
+The app **must be served over HTTP**. Opening `index.html` by double-clicking it
+will not work — service workers and `fetch()` are blocked on `file://`.
+
+**Windows, quickest path:**
 
 ```
-python -m http.server 8000
+cd Documents\Quran Tarkeeb\quran-nahw
+python -m http.server 8080
 ```
 
-The Quranic text and its matching font are already bundled — 6,236 ayahs,
-82,635 words, ready on first load. A service worker needs `https://` or
-`localhost`, so don't open `index.html` straight off the disk.
+Then open `http://localhost:8080`. Or just double-click `run.bat`.
 
-### What's bundled
-
-**Text:** Indo-Pak (Madinah) v9.6.1 — the Naskh Nastaleeq IndoPak text used on
-Quran.com and QuranWBW.com.
-
-**Font:** AlQuran-IndoPak-by-QuranWBW v4.2.2 (`.woff2` + `.ttf`), the font this
-text requires. The text is *not* plain Unicode — it uses private-use codepoints
-for ligatures and ayah icons, so it renders correctly **only** with this font.
-The two ship together for that reason.
-
-Both by **Ayman Siddiqui and R. Siddiqua**, for QuranWBW.com and Quran.com,
-released for Sadaqa-e-Jaria. Their terms require credits to travel with the
-files: `fonts/CREDITS-AND-TERMS.txt` is the original notice, and the app shows
-a credit line in the panel. Don't sell it or strip the attribution.
-
-Surah names, verse counts, and all 30 juz boundaries come from QuranWBW's
-`quranMeta.js` rather than being typed by hand.
-
-### Using your own QUL text instead
-
-The bundled text is the **Madinah** IndoPak variant. If you want **Hanafi
-(QUL script #59)** — the one paired with font #242 — it isn't published
-anywhere I could reach, so import it yourself: panel → **Import QUL file** →
-pick your `.db`. It parses in the browser via sql.js (bundled in `vendor/`),
-nothing uploads, and it replaces the bundled text permanently.
-
-Swap the font too if you do: drop your TTF in as `fonts/quran-indopak.ttf` and
-delete `quran-indopak.woff2` so the browser stops preferring it.
-
-## Putting it on the Galaxy Tab
-
-Push the folder to a GitHub repo, then **Settings → Pages → Deploy from branch
-→ main / (root)**. You get an HTTPS URL in a minute or two.
-
-On the tab: open that URL in Chrome → menu → **Add to Home screen**. It
-installs as a standalone app and caches the text, font, and code on first load
-— about 2 MB total — so it works with no signal from then on.
+**To use it on the Galaxy Tab:** put the folder on any static host — GitHub Pages,
+Netlify drop, or Cloudflare Pages all work and all are free. Once it's on HTTPS,
+open it in Chrome or Samsung Internet on the tablet and choose
+**Add to Home screen**. It then launches full-screen and works with no network.
 
 ---
 
-## The S Pen workflow
+## 2. Add the Quran font
 
-1. Pick your range and layout, leave mode on **لکھائی**.
-2. **پرنٹ / PDF** → in Chrome's print dialog choose **Save as PDF**.
-   Set margins to *Default*; the app already sets the page size and margin.
-3. Open the PDF in Samsung Notes and write on it.
+The app looks for the font in this order:
 
-Print to paper works identically — same dialog, pick your printer.
+1. `fonts/quran.woff2`
+2. `fonts/quran.ttf`
+3. a font named `AlQuran IndoPak by QuranWBW` installed on the system
 
----
+So do either of these:
 
-## The four layouts
+- Copy your TTF to `fonts/quran.ttf`, **or**
+- Install it in Windows/Android as usual and leave `fonts/` empty.
 
-| | | |
-|---|---|---|
-| **Word boxes** | each word in its own box with ruled space beneath | word-level صرفی/نحوی drill |
-| **Table** | table: # \| کلمہ \| تحلیلِ صرفی \| ترکیبِ نحوی \| معنی | systematic full-ayah analysis |
-| **Lines** | full ayah, then ruled lines | continuous prose ترکیب |
-| **Diagram** | full ayah, then a dot-grid field | drawing tarkeeb trees |
+For the tablet, option 1 is the reliable one — Android won't expose an installed
+font to the browser. Converting the TTF to WOFF2 first will cut the download by
+roughly half, but is optional.
 
-## Three ways to work
-
-The **Paper / Pen / Type** switch applies to all four layouts.
-
-**Paper** leaves the space blank. Print or save as PDF and write on it in
-Samsung Notes. Unchanged from before.
-
-**Pen** puts a drawing canvas over each ayah so you can write directly in the
-app with the S Pen. A toolbar appears at the bottom: four colours (red first,
-since that's the usual i'rab ink), three nib widths, eraser, undo, and clear.
-
-Pen and mouse draw; a finger scrolls the page instead, so your palm won't leave
-marks. Pressure is picked up from the S Pen, so strokes thicken naturally.
-
-### Pen hardware
-
-Built on Pointer Events, so it works with any stylus the browser reports as a
-pen — S Pen, Surface Pen, Apple Pencil, Wacom.
-
-- **Pressure** varies stroke width, filtered so the line doesn't pulse.
-- **Eraser end** of the stylus, or the **barrel button** held down, erases
-  without touching the toolbar.
-- **Hover preview** shows a ring at the nib on devices that report hover.
-- **Palm rejection**: pen and mouse draw, finger scrolls.
-- **Finger** button — for cheap capacitive styluses and a few Android drivers
-  that report as touch rather than pen. Turns off palm rejection so they work.
-  If nothing draws after a few seconds, the status line suggests it.
-
-**Lock scroll** freezes the page completely — nothing shifts under your hand
-mid-word. While it's locked, the **▲ ▼** buttons step one ayah at a time, so
-you never have to unlock just to move on.
-
-Strokes are stored as points rather than pixels, keyed per ayah. That means
-they scale with the page, print at full resolution instead of looking like a
-screenshot, and survive a paper-size change. **پرنٹ / PDF** works exactly as
-before and now includes your handwriting.
-
-Canvases mount only as you scroll near them — a Juz 30 sheet is 564 ayah
-blocks and mounting them all at once would grind the tablet to a halt.
-
-**Type** turns the blanks into text fields, saved as you type.
-**Save notes** exports everything as JSON for backup.
-
-The interface is English and left-to-right; the worksheet itself stays
-right-to-left, so the Arabic and the table columns read in the correct order.
-Ayah numbers render in Arial inside parentheses — the same trick as the Word
-documents, so the Quran font's `calt` never swaps them for medallion glyphs.
+Put your Urdu UI font at `fonts/urdu.ttf` the same way if you don't want the
+system fallback.
 
 ---
 
-## Adding word-by-word Urdu meanings later
+## 3. Load the real Quranic text
 
-When you have the QUL meanings download, add an `m` array to each ayah object
-alongside `w`, with one entry per word:
+The app ships with six short surahs as demo text so you can try the layouts
+immediately. It is standard imlā'ī orthography, **not** Indo-Pak — replace it
+before doing real work. A yellow banner reminds you while demo data is loaded.
+
+```
+python tools\qul_export.py ^
+    --words "path\to\indopak-words.db" ^
+    --trans "path\to\jalandhry.db" ^
+    --out data
+```
+
+Only `--words` is required. Add `--wbw path\to\urdu-wbw.db` once you have the
+word-by-word Urdu meanings downloaded.
+
+The exporter removes end-of-ayah markers **positionally** — the highest `word`
+index in each ayah — never by looking at the glyph. It prints a sample of what it
+cut and flags any surah whose ayah count doesn't match the Kufan count, so the
+silent word-dropping problem can't recur unnoticed. Read that summary before
+trusting the output.
+
+### Waqf stripping is selective, deliberately
+
+Only pause, section and sajdah signs are removed: U+06D6–U+06DE and
+U+06E9–U+06EC. Everything else in that block is orthographic and is kept.
+
+This matters more than it sounds. **U+06E1 is the IndoPak sukun** and appears
+in nearly every word; U+06E4 madda, U+06E5 small waw and U+06E6 small yeh are
+part of the spelling. Stripping the whole U+06D6–U+06ED block — the obvious
+thing to write — quietly mangles the entire text.
+
+The importer now prints a per-codepoint tally of exactly what it removed, so
+you can confirm nothing structural went with it.
+
+**If you exported with a build before this fix, re-export.** Your text is
+missing its sukuns.
+
+### Waqf marks stored as words
+
+Some databases store a waqf sign as its own word row. Al-Baqarah 2:2 has seven
+words and two ۛ (muʿānaqah) marks, so it arrives as nine tokens — and the two
+marks draw as empty boxes.
+
+The letter check removes them, and all three layers agree on the rule:
+`qul_export.py` drops them, `morph_import.py` ignores them when counting and
+indexing, and the app skips them when drawing.
+
+The app also **renumbers the surviving words 1..n** rather than keeping their
+raw positions. Morphology is keyed on word index, so a mark sitting at
+position 5 would otherwise shift every later word out of alignment.
+Renumbering makes an uncleaned export render exactly like a clean one, which
+also means your saved answers stay attached to the right words when you
+re-export.
+
+### Two independent guards against ayah markers
+
+A box on the sheet containing nothing but a number is an ayah-end marker that
+your database stores as a word. Two separate checks now stop that:
+
+1. **Positional** — the highest `word` index in each ayah is cut, without ever
+   inspecting the glyph.
+2. **Letter presence** — any remaining token containing no Arabic letter at all
+   is removed and reported with its Unicode codepoints. A real Quranic word
+   always has at least one letter; markers are digits, medallions or
+   punctuation. This never asks *which* glyph a token is, so it cannot repeat
+   the old mistake of dropping real words by glyph-sniffing.
+
+The app applies the same letter check when drawing, so a sheet built from an
+export that predates this still renders correctly. Word indices are preserved
+when a marker is skipped, so saved answers and segmentation stay attached to
+the right words.
+
+After exporting, hard-refresh the browser once (Ctrl+Shift+R) so the service
+worker picks up the new `index.json`.
+
+---
+
+## 4. Word segmentation (تقطیع) — optional, off by default
+
+**Skip this whole section if you don't want it.** Segmentation is switched off
+on a fresh install, needs a separate data import to work at all, and nothing
+else in the app depends on it. The ayah-marker and waqf-mark fixes are
+independent and always active.
+
+Words can be broken into their grammatical parts — بِسْمِ shown as بِ (حرف جار)
+plus سْمِ (اسم مجرور) — with each part getting its own analysis boxes.
+
+The cuts are not guessed. They come from the Quranic Arabic Corpus, imported
+once:
+
+```
+python tools\morph_import.py --morph quran-morphology.txt --data data
+```
+
+Get `quran-morphology.txt` from github.com/mustafa0x/quran-morphology — it is
+the corpus already converted to Arabic script, which imports far more cleanly.
+The original Buckwalter file from corpus.quran.com/download also works if you
+add `--buckwalter`.
+
+### Why the import prints an alignment report
+
+The morphology is annotated over Uthmani text; your worksheets are IndoPak.
+The two differ in orthography, so "cut after letter 2" in one is not
+automatically letter 2 in the other. The importer therefore proves every
+boundary against your actual text — anchoring segments from the left and from
+the right — and emits only what it can verify. Anything it cannot prove is
+dropped and reported rather than guessed.
+
+Tested against all 42,807 multi-segment words with IndoPak letterforms
+substituted, it resolves 99.99% fully; six words do not. Separately, 208
+segments are elided pronouns (the dropped ي of رَبِّ) which have no letters
+and so no boundary to draw — these are counted and skipped.
+
+### Word counts must match, per ayah
+
+The join between your text and the corpus is the word index. If your text
+splits or joins a word differently in some ayah, every later index there
+shifts and the morphology lands on the wrong words. The importer compares
+the word count of each ayah before touching it and skips the whole ayah on
+a mismatch, listing every one it skipped. It will not emit
+plausible-looking nonsense.
+
+### Inspecting a token you did not expect
+
+When a box on the sheet shows something odd, dump the codepoints rather than
+squint at the glyph:
+
+```
+python tools\peek.py --words "path\to\indopak-words.db" --ayah 1:7
+python tools\peek.py --data data --ayah 1:7
+```
+
+It prints every token with its Unicode name, classifies each character as
+letter / harakah / digit / mark, and says outright whether the token will be
+kept or dropped. Run it against the database first — that is where the truth
+is; the export can only inherit what the database holds.
+
+It also reports how many ayahs the database holds for that surah, which is how
+you catch a numbering shift.
+
+Note that comparing Quranic text as strings is unreliable: sources differ in
+combining-mark **order** (shadda before kasra, or after) while looking
+identical. The aligner compares letter skeletons with the marks removed, so it
+is unaffected — but do not expect two texts to match byte for byte.
+
+### Checking a single ayah
+
+```
+python tools\morph_import.py --morph quran-morphology.txt --data data --explain 1:7
+```
+
+prints your word, the corpus segmentation, and the resulting cut for every
+word in that ayah, plus both letter skeletons wherever a boundary could not
+be proven. This is the tool for "why didn't this word break?"
+
+Not every word breaks, and that is usually correct. In 1:7, six of nine
+split; صِرَاطَ and غَيْرِ are single stems, and الَّذِينَ is an اسم موصول
+that the corpus treats as one unit rather than ال + ذين.
+
+Read the summary after importing. If a surah shows a high unresolved count,
+that is a real signal about your text, not noise.
+
+### Controls
+
+In ترتیبات › تقطیع:
+
+| Control | Effect |
+|---|---|
+| کلمات توڑ کر دکھائیں | Turns segmentation on or off. **Off by default** |
+| ہر جزو کے اپنے خانے | Each part gets its own نوع/اعراب/ترکیب rows — matches real i'rab, taller cards |
+| مشترک خانے | Parts are shown in the header, one set of boxes for the whole word — same page density as before |
+| نوع پہلے سے لکھی ہو | Pre-fills نوع from the corpus tag. Leave off for blank practice sheets; turn on to check your work |
+
+Answers on segments are stored separately from whole-word answers, so
+switching between ہر جزو and مشترک never overwrites either set.
+
+Attribution is required wherever this data appears — see `NOTICE.md`.
+
+---
+
+## 5. Across devices
+
+One layout, four shapes. Nothing is a separate "mobile version" — the same
+elements move.
+
+| Width | What changes |
+|---|---|
+| **Phone** (≤640px) | Surah picker gets its own row; mode switch and پرنٹ move to a fixed bottom dock within thumb reach; ترتیبات opens as a full-height drawer with the page behind it locked |
+| **Tablet portrait** (≤900px) | Sheet fills the width rather than pretending to be A4; jadwal scrolls sideways with the کلمہ column pinned in place |
+| **Laptop** (≥900px) | True A4 preview — the sheet on screen is the exact width of the printed page |
+| **Wide desktop** (≥1200px) | ترتیبات becomes a sticky side rail instead of a band that shoves the sheet down |
+
+**صفحہ** in ترتیبات controls this directly: **A4** for print-accurate preview,
+**اسکرین** to use the full window, or **خودکار** to let it pick. Printing is
+always A4 regardless of what's on screen.
+
+**تھیم** offers خودکار / روشن / تاریک. Dark mode follows the system setting by
+default and is worth having for night study on an OLED tablet. Print output is
+forced to black-on-white in every theme, so a dark screen never costs you ink or
+legibility.
+
+On first run the app also picks starting sizes from the device: smaller Quran
+text and two cards per row on a phone, and a taller writing row when it detects
+a stylus or finger input rather than a mouse. Every one of those is a slider you
+can move afterwards, and your choices are what get remembered from then on.
+
+Rotating the tablet or resizing the window re-evaluates all of this live — no
+reload needed.
+
+---
+
+## 6. Using it
+
+**Top bar** — surah, ayah range, پارہ jump, and the ہاتھ سے لکھیں / ٹائپ کریں switch.
+
+**ترتیبات** opens the rest:
+
+| Setting | What it does |
+|---|---|
+| تختی | One card per word with ruled writing space underneath |
+| جدول | One table row per word, columns for each field |
+| سطریں | The verse, then open ruled lines for free-form ترکیب |
+| خانے | Which fields appear: نوع، صیغہ/وزن، اعراب، ترکیب/محل، مادہ، ترجمہ |
+| لکھائی کی جگہ | Row height — raise it for S Pen, lower it for typing |
+| ایک سطر میں کلمات | Cards per row, or خودکار to fit the page |
+
+**ہاتھ سے لکھیں** always prints blank, even if you've typed answers before —
+that's what makes it a worksheet. Switch to **ٹائپ کریں** to see and print your
+saved answers.
+
+### Worksheet → Samsung Notes
+
+1. **پرنٹ / PDF** → in the print dialog choose *Save as PDF* → A4 portrait.
+2. Turn **off** "Headers and footers" and set margins to *Default*.
+3. Move the PDF to the tablet, open Samsung Notes → **Import PDF**, and annotate
+   with the S Pen.
+
+Everything on screen is already A4-width, so the print is what you see.
+
+### Answers
+
+Typing autosaves to the device after a short pause. Nothing is uploaded anywhere.
+
+- **جوابات محفوظ کریں (JSON)** downloads a backup of every answer.
+- **جوابات درآمد کریں** restores one, including onto a different device.
+- **پورا قرآن آف لائن محفوظ کریں** pre-downloads all surah files so the app works
+  with no connection at all.
+
+Clearing the browser's site data will erase saved answers, so export a backup
+before doing that.
+
+---
+
+## 7. Files
+
+```
+index.html            markup and controls
+app.css               design system, screen and print layouts
+app.js                data loading, IndexedDB, rendering, save/export
+sw.js                 service worker — offline shell and data cache
+manifest.json         install metadata
+run.bat               starts a local server on Windows
+data/                 index.json + surah-001.json … surah-114.json
+fonts/                quran.ttf / quran.woff2 (yours), urdu.ttf (optional)
+icons/                app icons
+tools/qul_export.py   QUL SQLite → data/
+tools/morph_import.py QUL morphology → segment cuts
+tools/peek.py         dump one ayah's raw codepoints
+NOTICE.md             sources and attribution
+```
+
+The data format is deliberately plain, one file per surah:
 
 ```json
-{"n": 1, "w": ["بِسْمِ", "ٱللَّهِ"], "m": ["نام سے", "اللہ کے"]}
+{"surah":78,"ar":"النبأ","en":"An-Naba","ayahs":40,
+ "verses":[{"w":["عَمَّ","يَتَسَآءَلُونَ"],"t":"…","m":["کس چیز","پوچھتے ہیں"]}]}
 ```
 
-The معنی column fills automatically when `m` is present and stays blank when it
-isn't. No other change needed.
-
----
-
-## Files
-
-```
-index.html              shell
-css/app.css             all styling, including @media print
-js/app.js               state, rendering, note storage
-js/import.js            in-browser QUL SQLite importer
-vendor/sql-wasm.*       sql.js (MIT) — reads SQLite in the browser
-sw.js                   offline cache  ← bump CACHE after any edit
-manifest.webmanifest    install metadata
-tools/build_data.py     optional: QUL SQLite → JSON without the browser
-data/                   optional: quran-data.json or surah/*.json
-fonts/                  your TTF goes here
-```
-
----
-
-## Getting a clean PDF
-
-**Save PDF** builds the file inside the app rather than handing the job to the
-browser's print engine. That matters: Chrome on Android lays print pages out
-differently from Chrome on desktop, which is how verses ended up sliced and the
-first one went missing. The app now composes each page itself, cutting only at
-the ayah boundaries it chose, so the output is identical on every device. Pen
-strokes are captured too.
-
-**Open in…** appears on devices that support file sharing. It hands the PDF
-straight to the Android share sheet, where Samsung Notes, OneNote and Drive
-show up as targets — no download-then-find-it step.
-
-If your device refuses the share — Samsung Notes isn't registered as a PDF
-share target on every One UI version — the app saves the file instead rather
-than failing silently, and tells you where it went. The manual route is:
-**My Files → tap the PDF → Open with → Samsung Notes**, or in Samsung Notes,
-new note → **Insert → PDF**. That path always works.
-
-It takes two taps the first time, and that's deliberate rather than clumsy:
-`navigator.share()` is only allowed inside a live user gesture, and building
-the PDF takes longer than that gesture stays valid. So the first tap builds the
-file and the second one shares it. The result is cached, so tapping again with
-nothing changed shares instantly on a single tap. Change the range, layout or
-your handwriting and it rebuilds.
-
-**Print** is still there and still uses the browser, which produces a smaller
-vector file. Good on the laptop; less reliable on the tablet.
-
-
-Ayat vary enormously in length, so a worksheet block can easily outgrow a
-sheet of paper. Three controls decide how the pages come out:
-
-- **Columns** (word-box layout) — more columns means shorter blocks. Six
-  columns roughly halves the height of two.
-- **Writing lines** — the single biggest driver of block height.
-- **Shrink oversized ayat to fit** (on by default) — any block still taller
-  than the page is scaled down to exactly one page rather than being sliced
-  across two. Nothing is ever cut in half.
-- **Each ayah on a new page** — combine with the above and you get exactly one
-  page per ayah, no matter how long each one is.
-
-Ayah headings are pinned to their content, so a heading never lands alone at
-the foot of a page.
-
-## Notes
-
-- **Changes not showing up?** The service worker is serving the old copy. Bump
-  the `CACHE` constant at the top of `sw.js`.
-- **Ruled lines too faint or too dark?** One value controls every writing
-  guide: `--rule-write` at the top of `css/app.css` (currently `#dadee4`).
-  Lower the number for darker, raise it for fainter. Cell outlines and table
-  borders use `--rule` and are deliberately separate, so structure stays
-  readable when the guides go pale.
-- **Where does imported text live?** IndexedDB, database `quran-nahw`, store
-  `text`, key `bundle`. It takes priority over the bundled
-  `data/quran-data.json`. To go back to the bundled text, clear that key from
-  DevTools → Application → IndexedDB.
-- **Remove pause marks** removes pause signs (U+06D6–U+06DE, U+06E2, U+06E9)
-  at render time only — the stored text is untouched, so it's reversible. It
-  deliberately keeps madda U+06E4, the silent-letter zeros U+06DF/U+06E0, and
-  sukun U+06E1: those are IndoPak orthography, not pause marks, and stripping
-  the whole U+06D6–U+06ED block the way the Word pipeline does would corrupt
-  this text.
-- **Juz boundaries and surah names** for the bundled text come from QuranWBW's
-  metadata. `js/import.js` and `tools/build_data.py` carry their own hardcoded
-  copies for imported databases; edit `JUZ_STARTS` / `SURAH_NAMES` there if
-  needed.
-- Settings (layout, paper, font size) persist in localStorage. Notes live in
-  IndexedDB, keyed `surah:ayah:wordIndex:field`, and are per-device — export
-  the JSON if you want them on both laptop and tablet.
+`w` is words, `t` is the ayah translation, `m` is word-by-word meanings. All
+optional except `w`, so partial data loads fine.
