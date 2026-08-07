@@ -1,41 +1,63 @@
-# Why the text stayed black
+# Upload
 
-The colour comes from `data/morph-*.json`. The files on your site were built by
-the earlier importer, which only recorded where to cut words — it had no word
-categories, because colouring did not exist yet. The app found the files, used
-them for splitting, and had nothing to colour with.
+Repository root, replacing what is there:
 
-# Upload these
-
-Into `data/`, replacing what is there:
-
-    data/morph-001.json
-    data/morph-103.json
-    data/morph-108.json
-    data/morph-112.json
-    data/morph-113.json
-    data/morph-114.json
-
-Into the repository root, replacing what is there:
-
+    index.html
     app.js
+    app.css
     sw.js
+    manifest.json
 
-Then clear Chrome's cached files on the tab and reopen the site.
+Into `icons/`, replacing what is there:
 
-Turn on Settings › Show › **Colour by word type**.
+    icons/icon-192.png
+    icons/icon-512.png
+    icons/icon-maskable.png
+    icons/apple-touch-icon.png
+    icons/favicon-32.png
+    icons/favicon-64.png
 
-## Two things app.js now does better
+Then on the tab: Chrome > Settings > Site settings > All sites > your site >
+Clear & reset. Reopen the app and check Settings > Files reads **build 14**.
 
-It says so when a morphology file is too old to carry colours, instead of
-leaving you to guess why nothing happened.
+If you already added the app to the home screen, remove that shortcut and add
+it again — Android caches the old icon with the shortcut.
 
-It also looks for `morph-*.json` even when `index.json` does not list it. The
-old behaviour trusted the index, so a file sitting right there could be ignored.
+## 1. Text only layout
 
-## When you re-export your own text
+A fourth option under Sheet layout. Just the Quranic text, no boxes, no lines.
 
-These six files match the sample text currently in your `data/` folder. Once
-you export your own IndoPak text, regenerate them:
+Line spacing is under Settings > Sizing, from 1.4 up to 4.5. It applies to the
+ayah text in every layout, so it also opens up the Cards and Lines views.
 
-    python tools\morph_import.py --morph quran-morphology.txt --data data
+Both of these already existed in the code but had never been uploaded, which is
+why you could not see them.
+
+## 2. Changing the name
+
+Two separate names.
+
+**The name people see** — change it in three places, all plain text:
+
+    index.html   line 6    <title>Quran Nahw worksheets</title>
+    index.html   line 22   <span class="bar__name">Quran Nahw</span>
+    manifest.json          "name" and "short_name"
+
+`short_name` is what appears under the icon on the tablet home screen, so keep
+it under about 12 characters.
+
+**The web address** — that comes from the repository name. On github.com go to
+Settings > General > Repository name and rename it. `quran-nahw` becomes
+whatever you choose, and the address changes to match:
+
+    https://quranlisan.github.io/NEW-NAME/
+
+The old address stops working, so re-add the home screen shortcut afterwards.
+Your GitHub username `QuranLisan` is the first part and can be changed too,
+under your account settings, but that affects every repository you own.
+
+## 3. New icon
+
+An open mushaf with the three grammar colours ruled across the pages — green
+ism, red fi'l, blue harf. It matches what the app does and stays readable at
+launcher size.

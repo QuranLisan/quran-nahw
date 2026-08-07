@@ -7,7 +7,7 @@
    build a device is actually running — clearing "cached images and files" on
    Android does NOT clear a service worker's Cache Storage, so a stale copy can
    survive a refresh and look identical. */
-const BUILD = 13;
+const BUILD = 14;
 
 /* ------------------------------------------------------------------ config */
 
@@ -68,7 +68,8 @@ const S = {
   from: 1,
   to: 7,
   mode: 'hand',          // hand | type
-  layout: 'takhti',      // takhti | jadwal | satrain
+  layout: 'takhti',      // takhti | jadwal | satrain | matn
+  lineH: 21,            // verse line-height, tenths
   cols: COLUMNS.filter(c => c.on).map(c => c.id),
   translation: false,
   wordMeaning: false,
@@ -344,6 +345,7 @@ function render(data) {
   sheet.innerHTML = '';
   sheet.style.setProperty('--q-size', S.qsize + 'px');
   sheet.style.setProperty('--box-h', S.boxh + 'px');
+  sheet.style.setProperty('--line-h', (S.lineH / 10).toFixed(1));
   sheet.classList.toggle('is-guides', S.guides);
   sheet.classList.toggle('is-colored', S.colorPos);
   sheet.dataset.layout = S.layout;
@@ -368,10 +370,26 @@ function render(data) {
   );
   sheet.append(head);
 
-  for (let a = S.from; a <= S.to; a++) {
-    const verse = data.verses[a - 1];
-    if (!verse) continue;
-    sheet.append(buildAyah(a, verse));
+  if (S.layout === 'matn' && !S.translation) {
+    const line = el('p', 'verseline verseline--flow');
+    for (let a = S.from; a <= S.to; a++) {
+      const verse = data.verses[a - 1];
+      if (!verse) continue;
+      realWords(verse).forEach(({ t, i }, idx) => {
+        if (idx) line.append(document.createTextNode(' '));
+        line.append(el('span', 'w' + posClass(posOf(a, i)), t));
+      });
+      line.append(document.createTextNode(' '));
+      line.append(el('span', 'verseline__num', `(${toArabicDigits(a)})`));
+      line.append(document.createTextNode(' '));
+    }
+    sheet.append(line);
+  } else {
+    for (let a = S.from; a <= S.to; a++) {
+      const verse = data.verses[a - 1];
+      if (!verse) continue;
+      sheet.append(buildAyah(a, verse));
+    }
   }
 
   if (S.mode === 'type') applyNotes();
@@ -388,7 +406,7 @@ function buildAyah(a, verse) {
     wrap.append(bar);
   }
 
-  if (S.verseLine) {
+  if (S.verseLine || S.layout === 'matn') {
     const line = el('p', 'verseline');
     realWords(verse).forEach(({ t, i }, idx) => {
       if (idx) line.append(document.createTextNode(' '));
@@ -400,6 +418,7 @@ function buildAyah(a, verse) {
     wrap.append(line);
   }
 
+  if (S.layout === 'matn')    return wrap;
   if (S.layout === 'takhti')  wrap.append(buildTakhti(a, verse));
   if (S.layout === 'jadwal')  wrap.append(buildJadwal(a, verse));
   if (S.layout === 'satrain') wrap.append(buildSatrain(a, verse));
@@ -590,7 +609,7 @@ function countWords(data) {
 /* ------------------------------------------------------------------ prefs */
 
 const PREF_KEYS = ['surah','from','to','mode','layout','cols','translation','wordMeaning',
-  'ref','verseLine','guides','labels','qsize','boxh','perRow','paper','theme',
+  'ref','verseLine','guides','labels','qsize','lineH','boxh','perRow','paper','theme',
   'taqti','segBoxes','showPos','colorPos'];
 
 function savePrefs() {
@@ -700,6 +719,7 @@ function buildControls() {
   $('#optShowPos').checked = S.showPos;
   $('#qsize').value = S.qsize;  $('#qsizeVal').textContent = S.qsize;
   $('#boxh').value = S.boxh;    $('#boxhVal').textContent = S.boxh;
+  $('#lineH').value = S.lineH;  $('#lineHVal').textContent = (S.lineH / 10).toFixed(1);
   $('#perRow').value = S.perRow;
   $('#perRowVal').textContent = S.perRow || 'Auto';
 
@@ -756,6 +776,7 @@ function wire() {
       takhti: 'One card per word, with writing space beneath.',
       jadwal: 'One table row per word, one column per field.',
       satrain: 'The ayah, then open ruled lines.',
+      matn: 'Running Quranic text only — no boxes to write in.',
     })[S.layout];
     refresh();
   }));
@@ -792,10 +813,12 @@ function wire() {
     const sheet = $('#sheet');
     sheet.style.setProperty('--q-size', S.qsize + 'px');
     sheet.style.setProperty('--box-h', S.boxh + 'px');
+    if (key === 'lineH') sheet.style.setProperty('--line-h', (S.lineH / 10).toFixed(1));
     if (key === 'perRow') refresh(); else savePrefs();
   });
   slide('#qsize', 'qsize', '#qsizeVal');
   slide('#boxh', 'boxh', '#boxhVal');
+  slide('#lineH', 'lineH', '#lineHVal', v => (v / 10).toFixed(1));
   slide('#perRow', 'perRow', '#perRowVal', v => v || 'Auto');
 
   $$('.seg__btn[data-paper]').forEach(b => b.addEventListener('click', () => {

@@ -327,7 +327,7 @@ button, input, select { font: inherit; color: inherit; }
 .verseline {
   font-family: var(--font-quran);
   font-size: calc(var(--q-size) * .92);
-  line-height: 2.05;
+  line-height: var(--line-h, 2.05);
   text-align: justify;
   margin-bottom: 14px;
   padding-bottom: 10px;
@@ -696,3 +696,18 @@ button, input, select { font: inherit; color: inherit; }
 .legend.is-off { opacity: .55; }
 .legend__state { color: var(--ink-soft); }
 .legend:not(.is-off) .legend__state { visibility: hidden; }
+
+/* ---- Text-only layout: running mushaf-style text, nothing to write in ---- */
+
+.verseline--flow {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: var(--q-size);
+}
+[data-layout="matn"] .verseline {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+[data-layout="matn"] .ayah { margin-bottom: 18px; }
