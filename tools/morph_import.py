@@ -165,6 +165,21 @@ def read_morph(path, buckwalter=False):
     return words
 
 
+def head_tag(segments):
+    """The word's own category, ignoring attached prefixes.
+
+    The corpus tags every segment N, V or P, which is exactly the three-way
+    اسم / فعل / حرف division. A word's category is that of its first
+    non-prefix segment: بِسْمِ is اسم despite the بِ, عَلَيْهِمْ is حرف
+    despite the pronoun.
+    """
+    for _form, tag, feats in segments:
+        if 'PREF' not in feats.split('|'):
+            return tag if tag in ('N', 'V', 'P') else 'N'
+    tag = segments[-1][1]
+    return tag if tag in ('N', 'V', 'P') else 'N'
+
+
 def label(tag, feats):
     toks = [t for t in feats.split('|') if ':' not in t]
     for key in ('DET', 'PRON', 'DEM', 'REL', 'PN', 'ADJ',
@@ -284,6 +299,7 @@ def main():
         surah = json.loads(path.read_text(encoding='utf-8'))
         s = surah['surah']
         out, local = {}, {'full': 0, 'partial': 0, 'none': 0, 'split': 0}
+        pos_rows = {}
 
         for ai, verse in enumerate(surah['verses'], start=1):
             # Word indices are the join key. If your text splits or joins a word
@@ -302,6 +318,7 @@ def main():
                 if not segs:
                     tally['missing'] += 1
                     continue
+                pos_rows.setdefault(ai, []).append((wi, head_tag(segs)))
                 cuts, status = align(word, segs)
                 tally[status] += 1
                 if status in local:
@@ -312,15 +329,22 @@ def main():
                 out[f'{ai}:{wi}'] = {
                     'c': cuts,
                     'p': [label(t, f) for _, t, f in segs],
+                    'k': [t if t in ('N', 'V', 'P') else 'N' for _, t, _ in segs],
                     'v': status == 'full',
                 }
                 if status == 'partial':
                     unresolved.append(
                         f'{s}:{ai}:{wi}\t{word}\t' + ' + '.join(f for f, _, _ in segs))
 
-        if out:
+        # One compact string per ayah: character i is word i+1's category.
+        pos = {}
+        for ai, rows in pos_rows.items():
+            rows.sort()
+            pos[str(ai)] = ''.join(t for _wi, t in rows)
+
+        if out or pos:
             (data / f'morph-{s:03d}.json').write_text(
-                json.dumps({'surah': s, 'segs': out},
+                json.dumps({'surah': s, 'segs': out, 'pos': pos},
                            ensure_ascii=False, separators=(',', ':')),
                 encoding='utf-8')
         total = local['full'] + local['partial'] + local['none']

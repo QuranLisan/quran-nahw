@@ -73,6 +73,7 @@ const S = {
   qsize: 34,
   boxh: 34,
   perRow: 0,
+  colorPos: false,      // tint words by اسم / فعل / حرف
   taqti: false,         // draw morphological segment boundaries — off by default
   segBoxes: 'own',      // own | shared — boxes per segment, or one set per word
   showPos: false,       // prefill نوع from the corpus tag
@@ -256,19 +257,29 @@ function clusters(word) {
   return out;
 }
 
+/* 'N' | 'V' | 'P' for one word — اسم / فعل / حرف. Comes from the corpus,
+   never inferred here. Empty when no morphology is loaded. */
+function posOf(a, w) {
+  const row = S.morph && S.morph.pos && S.morph.pos[String(a)];
+  return (row && row[w - 1]) || '';
+}
+
+const posClass = k => (k ? ' pos-' + k : '');
+
 /* Returns [{t, pos}] — one entry per segment, or a single entry when the
    word is not split. Cuts come from the morphology import; nothing here
    guesses a boundary. */
 function segmentsOf(a, w, word) {
   const rec = S.morph && S.morph.segs[`${a}:${w}`];
-  if (!S.taqti || !rec || !rec.c.length) return [{ t: word, pos: '' }];
+  if (!S.taqti || !rec || !rec.c.length) return [{ t: word, pos: '', k: posOf(a, w) }];
   const cl = clusters(word);
   const pts = [0, ...rec.c.filter(c => c > 0 && c < cl.length), cl.length];
   const out = [];
   for (let i = 0; i < pts.length - 1; i++) {
-    out.push({ t: cl.slice(pts[i], pts[i + 1]).join(''), pos: (rec.p || [])[i] || '' });
+    out.push({ t: cl.slice(pts[i], pts[i + 1]).join(''),
+               pos: (rec.p || [])[i] || '', k: (rec.k || [])[i] || '' });
   }
-  return out.length > 1 ? out : [{ t: word, pos: '' }];
+  return out.length > 1 ? out : [{ t: word, pos: '', k: posOf(a, w) }];
 }
 
 /* ------------------------------------------------------------------ notes */
@@ -327,6 +338,8 @@ function render(data) {
   sheet.style.setProperty('--q-size', S.qsize + 'px');
   sheet.style.setProperty('--box-h', S.boxh + 'px');
   sheet.classList.toggle('is-guides', S.guides);
+  sheet.classList.toggle('is-colored', S.colorPos);
+  sheet.dataset.layout = S.layout;
 
   if (!data) {
     const box = el('div', 'sheet__empty');
@@ -370,7 +383,11 @@ function buildAyah(a, verse) {
 
   if (S.verseLine) {
     const line = el('p', 'verseline');
-    line.textContent = realWords(verse).map(x => x.t).join(' ') + ' ';
+    realWords(verse).forEach(({ t, i }, idx) => {
+      if (idx) line.append(document.createTextNode(' '));
+      line.append(el('span', 'w' + posClass(posOf(a, i)), t));
+    });
+    line.append(document.createTextNode(' '));
     const num = el('span', 'verseline__num', `(${toArabicDigits(a)})`);
     line.append(num);
     wrap.append(line);
@@ -398,9 +415,10 @@ function buildTakhti(a, verse) {
 
     const head = el('div', 'card__word');
     if (split && S.segBoxes === 'shared') {
-      segs.forEach(sg => head.append(el('span', 'part', sg.t)));
+      segs.forEach(sg => head.append(el('span', 'part' + posClass(sg.k), sg.t)));
     } else {
       head.textContent = word;
+      head.className = 'card__word' + posClass(posOf(a, w));
     }
     card.append(head);
 
@@ -426,7 +444,7 @@ function buildTakhti(a, verse) {
     if (split && S.segBoxes === 'own') {
       segs.forEach((sg, si) => {
         const part = el('div', 'seg');
-        const t = el('div', 'seg__text', sg.t);
+        const t = el('div', 'seg__text' + posClass(sg.k), sg.t);
         if (S.showPos && sg.pos) t.append(el('span', 'seg__pos', sg.pos));
         part.append(t, slotsFor(noteKey(S.surah, a, w) + '#' + si));
         card.append(part);
@@ -459,18 +477,19 @@ function buildJadwal(a, verse) {
     const segs = segmentsOf(a, w, word);
     const split = segs.length > 1;
     const rows = (split && S.segBoxes === 'own')
-      ? segs.map((sg, si) => ({ text: sg.t, pos: sg.pos, ref: `${S.surah}:${a}:${w}-${si + 1}`,
+      ? segs.map((sg, si) => ({ text: sg.t, pos: sg.pos, k: sg.k,
+                                ref: `${S.surah}:${a}:${w}-${si + 1}`,
                                 key: noteKey(S.surah, a, w) + '#' + si }))
       : [{ text: null, segs, ref: `${S.surah}:${a}:${w}`, key: noteKey(S.surah, a, w) }];
 
     rows.forEach((row, ri) => {
       const tr = el('tr', ri ? 'row--cont' : null);
-      const wc = el('td', 'cell--word');
+      const wc = el('td', 'cell--word' + posClass(row.k || posOf(a, w)));
       if (row.text != null) {
         wc.textContent = row.text;
         if (S.showPos && row.pos) wc.append(el('span', 'seg__pos', row.pos));
       } else if (split) {
-        row.segs.forEach(sg => wc.append(el('span', 'part', sg.t)));
+        row.segs.forEach(sg => wc.append(el('span', 'part' + posClass(sg.k), sg.t)));
       } else {
         wc.textContent = word;
       }
@@ -561,7 +580,7 @@ function countWords(data) {
 
 const PREF_KEYS = ['surah','from','to','mode','layout','cols','translation','wordMeaning',
   'ref','verseLine','guides','labels','qsize','boxh','perRow','paper','theme',
-  'taqti','segBoxes','showPos'];
+  'taqti','segBoxes','showPos','colorPos'];
 
 function savePrefs() {
   const v = {};
@@ -665,6 +684,7 @@ function buildControls() {
   $('#optVerseLine').checked = S.verseLine;
   $('#optGuides').checked = S.guides;
   $('#optLabels').checked = S.labels;
+  $('#optColorPos').checked = S.colorPos;
   $('#optTaqti').checked = S.taqti;
   $('#optShowPos').checked = S.showPos;
   $('#qsize').value = S.qsize;  $('#qsizeVal').textContent = S.qsize;
@@ -739,6 +759,7 @@ function wire() {
   bind('#optVerseLine', 'verseLine');
   bind('#optGuides', 'guides');
   bind('#optLabels', 'labels');
+  bind('#optColorPos', 'colorPos');
   bind('#optTaqti', 'taqti');
   bind('#optShowPos', 'showPos');
 

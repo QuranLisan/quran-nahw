@@ -35,6 +35,9 @@
   --rule:       #ededef;
   --rule-firm:  #e2e3e6;
   --ref:        #b0b5bb;
+  --ism:        #1f6b4f;
+  --fil:        #a32c2c;
+  --harf:       #1a5fa5;
   --madder:     #a32c2c;
   --sabz:       #1f5f4e;
 
@@ -75,6 +78,9 @@
   --rule:       #2a313a;
   --rule-firm:  #333c46;
   --ref:        #5a636c;
+  --ism:        #6fbfa5;
+  --fil:        #e08585;
+  --harf:       #7fb2e8;
   --madder:     #e08585;
   --sabz:       #6fbfa5;
 
@@ -655,3 +661,34 @@ button, input, select { font: inherit; color: inherit; }
 .jadwal td.cell--word .part { display: inline-block; padding: 0 4px; }
 .jadwal td.cell--word .part + .part { border-inline-end: var(--hair) solid var(--rule-firm); }
 .jadwal td.cell--word .seg__pos { font-size: 9px; }
+
+
+/* ---- word type: اسم / فعل / حرف ----
+   Colour comes from the corpus tag, applied only when asked. Green / red /
+   blue is the scheme used in most printed nahw teaching material. */
+
+.is-colored .pos-N, .is-colored .pos-N .part { color: var(--ism); }
+.is-colored .pos-V, .is-colored .pos-V .part { color: var(--fil); }
+.is-colored .pos-P, .is-colored .pos-P .part { color: var(--harf); }
+.is-colored .part.pos-N { color: var(--ism); }
+.is-colored .part.pos-V { color: var(--fil); }
+.is-colored .part.pos-P { color: var(--harf); }
+
+.legend { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.legend .key {
+  width: 11px; height: 11px; border-radius: 2px; display: inline-block;
+  margin-inline-start: 6px;
+}
+.legend .key:first-child { margin-inline-start: 0; }
+.legend .key.pos-N { background: var(--ism); }
+.legend .key.pos-V { background: var(--fil); }
+.legend .key.pos-P { background: var(--harf); }
+
+/* ---- Lines layout: the ayah is the focus, so centre it ---- */
+
+[data-layout="satrain"] .verseline {
+  text-align: center;
+  text-align-last: center;
+}
+[data-layout="satrain"] .ayah__bar { justify-content: center; }
+[data-layout="satrain"] .ayah__trans { text-align: center; }
