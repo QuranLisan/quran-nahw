@@ -3,6 +3,12 @@
 
 'use strict';
 
+/* Bump with every release. Shown in Settings › Files so you can confirm which
+   build a device is actually running — clearing "cached images and files" on
+   Android does NOT clear a service worker's Cache Storage, so a stale copy can
+   survive a refresh and look identical. */
+const BUILD = 13;
+
 /* ------------------------------------------------------------------ config */
 
 const COLUMNS = [
@@ -765,6 +771,12 @@ function wire() {
   bind('#optGuides', 'guides');
   bind('#optLabels', 'labels');
   bind('#optColorPos', 'colorPos');
+  const legend = () => {
+    const el2 = $('.legend');
+    if (el2) el2.classList.toggle('is-off', !S.colorPos);
+  };
+  $('#optColorPos').addEventListener('change', legend);
+  legend();
   bind('#optTaqti', 'taqti');
   bind('#optShowPos', 'showPos');
 
@@ -898,7 +910,18 @@ function wire() {
     $('#sheet').append(box);
   }
 
+  const bv = $('#buildVer');
+  if (bv) bv.textContent = 'build ' + BUILD;
+
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
+    // A new worker taking over means new files are cached. Reload once so the
+    // page is not left running the old CSS against the new markup.
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloaded) return;
+      reloaded = true;
+      location.reload();
+    });
   }
 })();

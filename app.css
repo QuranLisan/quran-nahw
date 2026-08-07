@@ -692,3 +692,7 @@ button, input, select { font: inherit; color: inherit; }
 }
 [data-layout="satrain"] .ayah__bar { justify-content: center; }
 [data-layout="satrain"] .ayah__trans { text-align: center; }
+
+.legend.is-off { opacity: .55; }
+.legend__state { color: var(--ink-soft); }
+.legend:not(.is-off) .legend__state { visibility: hidden; }

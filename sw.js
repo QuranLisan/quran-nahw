@@ -1,7 +1,7 @@
 /* نحوی مشق — service worker
    App shell is precached. Data and fonts are cached on first use. */
 
-const VERSION = 'nahw-v12';
+const VERSION = 'nahw-v13';
 const SHELL = [
   './',
   'index.html',
