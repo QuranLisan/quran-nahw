@@ -6,12 +6,12 @@
 /* ------------------------------------------------------------------ config */
 
 const COLUMNS = [
-  { id: 'noo',     label: 'نوع',        ph: 'اسم / فعل / حرف', on: true },
-  { id: 'sighah',  label: 'صیغہ / وزن', ph: '',                on: true },
-  { id: 'irab',    label: 'اعراب',      ph: '',                on: true, irab: true },
-  { id: 'tarkeeb', label: 'ترکیب / محل',ph: '',                on: true },
-  { id: 'madda',   label: 'مادہ',       ph: '',                on: false },
-  { id: 'tarjuma', label: 'ترجمہ',      ph: '',                on: false },
+  { id: 'noo',     label: 'Type',      on: true },
+  { id: 'sighah',  label: 'Form',      on: true },
+  { id: 'irab',    label: "I'rab",     on: true, irab: true },
+  { id: 'tarkeeb', label: 'Structure', on: true },
+  { id: 'madda',   label: 'Root',      on: false },
+  { id: 'tarjuma', label: 'Meaning',   on: false },
 ];
 
 const AR_DIGITS = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -69,6 +69,7 @@ const S = {
   ref: true,
   verseLine: true,
   guides: true,
+  labels: false,        // field names printed inside the boxes
   qsize: 34,
   boxh: 34,
   perRow: 0,
@@ -103,22 +104,30 @@ const notice = msg => {
 
 /* ------------------------------------------------------------------ data */
 
+/* Your export lives in data/. The bundled sample lives in demo/ and is only
+   reached when data/ is absent, so an update can never overwrite your text. */
+let DATA_DIR = 'data';
+
 async function loadIndex() {
-  const res = await fetch('data/index.json', { cache: 'no-cache' }).catch(() => null);
-  if (res && res.ok) {
-    const idx = await res.json();
-    await DB.put('prefs', { k: 'index', v: idx });
-    return idx;
+  for (const dir of ['data', 'demo']) {
+    const res = await fetch(`${dir}/index.json`, { cache: 'no-cache' }).catch(() => null);
+    if (res && res.ok) {
+      DATA_DIR = dir;
+      const idx = await res.json();
+      idx.demo = (dir === 'demo');
+      await DB.put('prefs', { k: 'index', v: idx });
+      return idx;
+    }
   }
   const cached = await DB.get('prefs', 'index');
-  if (cached) return cached.v;
-  throw new Error('data/index.json نہیں ملی');
+  if (cached) { DATA_DIR = cached.v.demo ? 'demo' : 'data'; return cached.v; }
+  throw new Error('data/index.json not found');
 }
 
 async function loadSurah(n) {
   const cached = await DB.get('surahs', n);
   if (cached) return cached;
-  const res = await fetch(`data/surah-${pad3(n)}.json`).catch(() => null);
+  const res = await fetch(`${DATA_DIR}/surah-${pad3(n)}.json`).catch(() => null);
   if (!res || !res.ok) return null;
   const data = await res.json();
   await DB.put('surahs', data);
@@ -129,7 +138,7 @@ async function loadMorph(n) {
   const cached = await DB.get('morph', n);
   if (cached) return cached;
   if (!S.index.morph || !S.index.morph.surahs.includes(n)) return null;
-  const res = await fetch(`data/morph-${pad3(n)}.json`).catch(() => null);
+  const res = await fetch(`${DATA_DIR}/morph-${pad3(n)}.json`).catch(() => null);
   if (!res || !res.ok) return null;
   const data = await res.json();
   await DB.put('morph', data);
@@ -214,7 +223,7 @@ async function flush() {
     const rec = S.notes.get(k);
     if (rec) await DB.put('notes', rec);
   }
-  status('محفوظ ہو گیا · ' + new Date().toLocaleTimeString('ur-PK'));
+  status('Saved · ' + new Date().toLocaleTimeString());
 }
 
 // don't lose the last keystroke on tab close or app switch
@@ -244,8 +253,8 @@ function render(data) {
   if (!data) {
     const box = el('div', 'sheet__empty');
     box.append(
-      el('p', null, 'اس سورہ کا ڈیٹا موجود نہیں۔'),
-      el('p', null, 'tools/qul_export.py چلا کر QUL ڈیٹابیس سے data/ فولڈر بنائیں۔')
+      el('p', null, 'No text loaded for this surah.'),
+      el('p', null, 'Run tools/qul_export.py to build the data/ folder.')
     );
     sheet.append(box);
     return;
@@ -254,7 +263,7 @@ function render(data) {
   const meta = S.index.surahs.find(s => s.n === S.surah);
   const head = el('header', 'sheet__head');
   const title = el('h1', 'sheet__title');
-  title.textContent = `سورۃ ${meta ? meta.ar : ''} — نحوی ترکیب`;
+  title.textContent = meta ? `Surah ${meta.en}` : 'Worksheet';
   head.append(
     title,
     el('span', 'sheet__range', `${S.surah}:${S.from}–${S.to}`)
@@ -324,11 +333,11 @@ function buildTakhti(a, verse) {
       const box = el('div', 'card__slots');
       activeCols().forEach(c => {
         const slot = el('div', 'slot' + (c.irab ? ' slot--irab' : ''));
-        slot.append(el('span', 'slot__tag', c.label));
+        if (S.labels) slot.append(el('span', 'slot__tag', c.label));
         const write = el('div', 'slot__write');
         write.dataset.k = key;
         write.dataset.f = c.id;
-        write.dataset.ph = c.ph;
+        write.dataset.ph = '';
         if (S.mode === 'type') makeEditable(write);
         slot.append(write);
         box.append(slot);
@@ -356,17 +365,16 @@ function buildJadwal(a, verse) {
   const table = el('table', 'jadwal');
   const cols = activeCols();
 
-  const thead = el('thead');
-  const hr = el('tr');
-  hr.append(el('th', null, 'کلمہ'));
-  if (S.ref) hr.append(el('th', null, 'حوالہ'));
-  if (S.wordMeaning) hr.append(el('th', null, 'لفظی معنی'));
-  cols.forEach(c => {
-    const th = el('th', c.irab ? 'is-irab' : null, c.label);
-    hr.append(th);
-  });
-  thead.append(hr);
-  table.append(thead);
+  if (S.labels) {
+    const thead = el('thead');
+    const hr = el('tr');
+    hr.append(el('th', null, 'Word'));
+    if (S.ref) hr.append(el('th', null, 'Ref'));
+    if (S.wordMeaning) hr.append(el('th', null, 'Meaning'));
+    cols.forEach(c => hr.append(el('th', c.irab ? 'is-irab' : null, c.label)));
+    thead.append(hr);
+    table.append(thead);
+  }
 
   const tbody = el('tbody');
   realWords(verse).forEach(({ t: word, i: w }) => {
@@ -395,7 +403,7 @@ function buildJadwal(a, verse) {
         const td = el('td', 'cell--write' + (c.irab ? ' cell--irab' : ''));
         td.dataset.k = row.key;
         td.dataset.f = c.id;
-        td.dataset.ph = c.ph;
+        td.dataset.ph = '';
         if (S.mode === 'type') makeEditable(td);
         tr.append(td);
       });
@@ -440,22 +448,25 @@ async function refresh() {
   $('#from').value = S.from;
   $('#to').value = S.to;
 
-  status('لوڈ ہو رہا ہے…');
+  status('Loading…');
   const data = await loadSurah(S.surah);
   S.morph = await loadMorph(S.surah);
   const attr = $('#morphAttr');
   if (attr) {
     attr.textContent = S.morph
       ? (S.index.morph && S.index.morph.source) || ''
-      : 'اس سورہ کے لیے تقطیع کا ڈیٹا موجود نہیں۔ tools/morph_import.py چلائیں۔';
+      : 'No splitting data for this surah. Optional — run tools/morph_import.py if you want it.';
   }
-  notice(data ? '' : `سورہ ${S.surah} کا ڈیٹا نہیں ملا۔ tools/qul_export.py سے data/ فولڈر بنائیں۔`);
-  if (data && data.demo) {
-    notice('نمونہ متن دکھایا جا رہا ہے۔ اصل اِندوپاک متن کے لیے QUL ڈیٹابیس سے ایکسپورٹ کریں۔');
+  if (!data) {
+    notice(`No text for surah ${S.surah}. Run tools/qul_export.py to build data/.`);
+  } else if (S.index.demo || data.demo) {
+    notice('Showing bundled sample text. Export your own into data/ to replace it.');
+  } else {
+    notice('');
   }
   render(data);
   const words = data ? countWords(data) : 0;
-  status(words ? `${S.to - S.from + 1} آیات · ${words} کلمات` : '');
+  status(words ? `${S.to - S.from + 1} ayahs · ${words} words` : '');
   savePrefs();
 }
 
@@ -471,7 +482,7 @@ function countWords(data) {
 /* ------------------------------------------------------------------ prefs */
 
 const PREF_KEYS = ['surah','from','to','mode','layout','cols','translation','wordMeaning',
-  'ref','verseLine','guides','qsize','boxh','perRow','paper','theme',
+  'ref','verseLine','guides','labels','qsize','boxh','perRow','paper','theme',
   'taqti','segBoxes','showPos'];
 
 function savePrefs() {
@@ -510,8 +521,8 @@ function applyPaper() {
   if (stage) stage.dataset.paper = eff;
   const note = $('#paperNote');
   if (note) note.textContent = eff === 'a4'
-    ? 'شیٹ بالکل A4 چوڑائی میں — جو نظر آ رہا ہے وہی پرنٹ ہوگا۔'
-    : 'شیٹ اسکرین کے مطابق۔ پرنٹ پھر بھی A4 پر ہوگا۔';
+    ? 'Sheet is exactly A4 wide — what you see is what prints.'
+    : 'Sheet fills the window. Printing is still A4.';
 }
 
 function effectiveTheme() {
@@ -550,7 +561,7 @@ function buildControls() {
   const juz = $('#juz');
   juz.append(Object.assign(el('option', null, '—'), { value: '' }));
   (S.index.juz || []).forEach(j => {
-    const o = el('option', null, `پارہ ${toArabicDigits(j.n)}`);
+    const o = el('option', null, `Juz ${j.n}`);
     o.value = j.n;
     juz.append(o);
   });
@@ -575,12 +586,13 @@ function buildControls() {
   $('#optRef').checked = S.ref;
   $('#optVerseLine').checked = S.verseLine;
   $('#optGuides').checked = S.guides;
+  $('#optLabels').checked = S.labels;
   $('#optTaqti').checked = S.taqti;
   $('#optShowPos').checked = S.showPos;
   $('#qsize').value = S.qsize;  $('#qsizeVal').textContent = S.qsize;
   $('#boxh').value = S.boxh;    $('#boxhVal').textContent = S.boxh;
   $('#perRow').value = S.perRow;
-  $('#perRowVal').textContent = S.perRow ? toArabicDigits(S.perRow) : 'خودکار';
+  $('#perRowVal').textContent = S.perRow || 'Auto';
 
   $$('.seg__btn[data-mode]').forEach(b => b.classList.toggle('is-on', b.dataset.mode === S.mode));
   $$('.seg__btn[data-layout]').forEach(b => b.classList.toggle('is-on', b.dataset.layout === S.layout));
@@ -632,9 +644,9 @@ function wire() {
     S.layout = b.dataset.layout;
     $$('.seg__btn[data-layout]').forEach(x => x.classList.toggle('is-on', x === b));
     $('#layoutNote').textContent = ({
-      takhti: 'ہر کلمے کے نیچے لکھائی کے لیے خانہ۔',
-      jadwal: 'ہر کلمہ ایک سطر — خانے کالموں میں۔',
-      satrain: 'آیت کے نیچے کھلی لکیریں — آزاد ترکیب کے لیے۔',
+      takhti: 'One card per word, with writing space beneath.',
+      jadwal: 'One table row per word, one column per field.',
+      satrain: 'The ayah, then open ruled lines.',
     })[S.layout];
     refresh();
   }));
@@ -648,6 +660,7 @@ function wire() {
   bind('#optRef', 'ref');
   bind('#optVerseLine', 'verseLine');
   bind('#optGuides', 'guides');
+  bind('#optLabels', 'labels');
   bind('#optTaqti', 'taqti');
   bind('#optShowPos', 'showPos');
 
@@ -667,7 +680,7 @@ function wire() {
   });
   slide('#qsize', 'qsize', '#qsizeVal');
   slide('#boxh', 'boxh', '#boxhVal');
-  slide('#perRow', 'perRow', '#perRowVal', v => v ? toArabicDigits(v) : 'خودکار');
+  slide('#perRow', 'perRow', '#perRowVal', v => v || 'Auto');
 
   $$('.seg__btn[data-paper]').forEach(b => b.addEventListener('click', () => {
     S.paper = b.dataset.paper;
@@ -726,13 +739,13 @@ function wire() {
       for (const r of (data.notes || [])) await DB.put('notes', r);
       await loadNotesForRange();
       refresh();
-      status(`${(data.notes || []).length} اندراج درآمد ہوئے`);
-    } catch { status('فائل پڑھی نہیں جا سکی'); }
+      status(`Imported ${(data.notes || []).length} entries`);
+    } catch { status('Could not read that file'); }
     e.target.value = '';
   });
 
   $('#clearRange').addEventListener('click', async () => {
-    if (!confirm(`سورہ ${S.surah}، آیت ${S.from}–${S.to} کے جوابات مٹا دیں؟`)) return;
+    if (!confirm(`Clear answers for surah ${S.surah}, ayahs ${S.from}–${S.to}?`)) return;
     for (const [k] of S.notes) {
       const [s, a] = k.split(':').map(Number);
       if (s === S.surah && a >= S.from && a <= S.to) {
@@ -741,18 +754,18 @@ function wire() {
       }
     }
     refresh();
-    status('مٹا دیا گیا');
+    status('Cleared');
   });
 
   $('#cacheAll').addEventListener('click', async () => {
     let ok = 0;
     for (const s of S.index.surahs) {
-      status(`آف لائن محفوظ… ${s.n} / ${S.index.surahs.length}`);
+      status(`Saving offline… ${s.n} / ${S.index.surahs.length}`);
       const d = await loadSurah(s.n);
       await loadMorph(s.n);
       if (d) ok++;
     }
-    status(`${ok} سورتیں آف لائن دستیاب ہیں`);
+    status(`${ok} surahs available offline`);
   });
 }
 
@@ -773,9 +786,9 @@ function wire() {
     $('#sheet').innerHTML = '';
     const box = el('div', 'sheet__empty');
     box.append(
-      el('p', null, 'ایپ شروع نہیں ہو سکی۔'),
+      el('p', null, 'The app could not start.'),
       el('p', null, String(err.message || err)),
-      el('p', null, 'ایپ کو ویب سرور سے چلائیں — براہِ راست فائل کھولنے پر نہیں چلے گی۔')
+      el('p', null, 'Serve it over http — opening the file directly will not work.')
     );
     $('#sheet').append(box);
   }

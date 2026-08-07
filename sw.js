@@ -1,14 +1,13 @@
 /* نحوی مشق — service worker
    App shell is precached. Data and fonts are cached on first use. */
 
-const VERSION = 'nahw-v1';
+const VERSION = 'nahw-v4';
 const SHELL = [
   './',
   'index.html',
   'app.css',
   'app.js',
   'manifest.json',
-  'data/index.json',
   'icons/icon-192.png',
   'icons/icon-512.png',
 ];
@@ -37,7 +36,7 @@ self.addEventListener('fetch', e => {
   if (url.origin !== self.location.origin) return;
 
   // index.json: network first so a fresh export shows up immediately
-  if (url.pathname.endsWith('data/index.json')) {
+  if (/\/(data|demo)\/index\.json$/.test(url.pathname)) {
     e.respondWith(
       fetch(req)
         .then(res => {

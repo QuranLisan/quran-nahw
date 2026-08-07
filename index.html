@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ur" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>نحوی مشق — قرآن</title>
-<meta name="description" content="قرآنی متن کی نحوی ترکیب کے لیے مشقی شیٹ — ہاتھ سے لکھیں یا ٹائپ کریں">
+<title>Quran Nahw worksheets</title>
+<meta name="description" content="Worksheets for Quranic grammatical analysis — handwrite or type">
 <meta name="theme-color" content="#191D26">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
@@ -18,40 +18,40 @@
 <header class="bar" id="bar">
   <div class="bar__brand">
     <span class="bar__mark" aria-hidden="true"></span>
-    <span class="bar__name">نحوی مشق</span>
+    <span class="bar__name">Quran Nahw</span>
   </div>
 
   <div class="bar__group bar__group--main">
     <label class="field field--surah">
-      <span class="field__label">سورہ</span>
+      <span class="field__label">Surah</span>
       <select id="surah" class="field__input"></select>
     </label>
 
     <label class="field field--num">
-      <span class="field__label">سے</span>
+      <span class="field__label">From</span>
       <input id="from" class="field__input" type="number" min="1" value="1" inputmode="numeric">
     </label>
 
     <label class="field field--num">
-      <span class="field__label">تک</span>
+      <span class="field__label">To</span>
       <input id="to" class="field__input" type="number" min="1" value="7" inputmode="numeric">
     </label>
 
-    <button class="btn btn--ghost" id="wholeSurah" type="button">پوری سورہ</button>
+    <button class="btn btn--ghost" id="wholeSurah" type="button">Whole surah</button>
 
     <label class="field">
-      <span class="field__label">پارہ</span>
+      <span class="field__label">Juz</span>
       <select id="juz" class="field__input"></select>
     </label>
   </div>
 
   <div class="bar__group bar__group--end">
-    <div class="seg" role="group" aria-label="حالت">
-      <button class="seg__btn is-on" data-mode="hand" type="button">ہاتھ سے لکھیں</button>
-      <button class="seg__btn" data-mode="type" type="button">ٹائپ کریں</button>
+    <div class="seg" role="group" aria-label="Mode">
+      <button class="seg__btn is-on" data-mode="hand" type="button">Handwrite</button>
+      <button class="seg__btn" data-mode="type" type="button">Type</button>
     </div>
-    <button class="btn btn--ghost" id="settingsToggle" type="button" aria-expanded="false" aria-controls="settings">ترتیبات</button>
-    <button class="btn btn--solid" id="print" type="button">پرنٹ / PDF</button>
+    <button class="btn btn--ghost" id="settingsToggle" type="button" aria-expanded="false" aria-controls="settings">Settings</button>
+    <button class="btn btn--solid" id="print" type="button">Print / PDF</button>
   </div>
 </header>
 
@@ -60,97 +60,98 @@
 <div class="shell">
 
 <section class="settings" id="settings" hidden>
-  <button class="settings__close" id="settingsClose" type="button">‹ واپس شیٹ پر</button>
+  <button class="settings__close" id="settingsClose" type="button">‹ Back to sheet</button>
 
   <div class="settings__col">
-    <h2 class="settings__h">شیٹ کی قسم</h2>
-    <div class="seg seg--wide" role="group" aria-label="شیٹ کی قسم">
-      <button class="seg__btn is-on" data-layout="takhti" type="button">تختی</button>
-      <button class="seg__btn" data-layout="jadwal" type="button">جدول</button>
-      <button class="seg__btn" data-layout="satrain" type="button">سطریں</button>
+    <h2 class="settings__h">Sheet layout</h2>
+    <div class="seg seg--wide" role="group" aria-label="Sheet layout">
+      <button class="seg__btn is-on" data-layout="takhti" type="button">Cards</button>
+      <button class="seg__btn" data-layout="jadwal" type="button">Table</button>
+      <button class="seg__btn" data-layout="satrain" type="button">Lines</button>
     </div>
-    <p class="settings__note" id="layoutNote">ہر کلمے کے نیچے لکھائی کے لیے خانہ۔</p>
+    <p class="settings__note" id="layoutNote">One card per word, with writing space beneath.</p>
   </div>
 
   <div class="settings__col">
-    <h2 class="settings__h">خانے</h2>
+    <h2 class="settings__h">Fields</h2>
     <div class="chips" id="cols"></div>
+    <p class="settings__note">Fields appear in this order, top to bottom.</p>
   </div>
 
   <div class="settings__col">
-    <h2 class="settings__h">دکھائیں</h2>
+    <h2 class="settings__h">Show</h2>
     <div class="chips">
-      <label class="chip"><input type="checkbox" id="optTranslation"><span>آیت کا ترجمہ</span></label>
-      <label class="chip"><input type="checkbox" id="optWordMeaning"><span>لفظی معنی</span></label>
-      <label class="chip"><input type="checkbox" id="optRef" checked><span>حوالہ</span></label>
-      <label class="chip"><input type="checkbox" id="optVerseLine" checked><span>مکمل آیت اوپر</span></label>
-      <label class="chip"><input type="checkbox" id="optGuides" checked><span>لکھائی کی لکیریں</span></label>
+      <label class="chip"><input type="checkbox" id="optLabels"><span>Field labels</span></label>
+      <label class="chip"><input type="checkbox" id="optTranslation"><span>Ayah translation</span></label>
+      <label class="chip"><input type="checkbox" id="optWordMeaning"><span>Word meanings</span></label>
+      <label class="chip"><input type="checkbox" id="optRef" checked><span>Reference</span></label>
+      <label class="chip"><input type="checkbox" id="optVerseLine" checked><span>Full ayah above</span></label>
+      <label class="chip"><input type="checkbox" id="optGuides" checked><span>Writing guide lines</span></label>
     </div>
   </div>
 
   <div class="settings__col">
-    <h2 class="settings__h">تقطیع</h2>
+    <h2 class="settings__h">Word splitting</h2>
     <div class="chips">
-      <label class="chip"><input type="checkbox" id="optTaqti"><span>کلمات توڑ کر دکھائیں</span></label>
-      <label class="chip"><input type="checkbox" id="optShowPos"><span>نوع پہلے سے لکھی ہو</span></label>
+      <label class="chip"><input type="checkbox" id="optTaqti"><span>Split words into parts</span></label>
+      <label class="chip"><input type="checkbox" id="optShowPos"><span>Pre-fill type</span></label>
     </div>
-    <div class="seg seg--wide" role="group" aria-label="خانے" style="margin-top:8px">
-      <button class="seg__btn is-on" data-segboxes="own" type="button">ہر جزو کے اپنے خانے</button>
-      <button class="seg__btn" data-segboxes="shared" type="button">مشترک خانے</button>
+    <div class="seg seg--wide" role="group" aria-label="Boxes per part" style="margin-top:8px">
+      <button class="seg__btn is-on" data-segboxes="own" type="button">Boxes per part</button>
+      <button class="seg__btn" data-segboxes="shared" type="button">Shared boxes</button>
     </div>
     <p class="settings__note" id="morphAttr"></p>
   </div>
 
   <div class="settings__col">
-    <h2 class="settings__h">صفحہ</h2>
-    <div class="seg seg--wide" role="group" aria-label="صفحہ">
-      <button class="seg__btn is-on" data-paper="auto" type="button">خودکار</button>
+    <h2 class="settings__h">Paper</h2>
+    <div class="seg seg--wide" role="group" aria-label="Paper">
+      <button class="seg__btn is-on" data-paper="auto" type="button">Auto</button>
       <button class="seg__btn" data-paper="a4" type="button">A4</button>
-      <button class="seg__btn" data-paper="fit" type="button">اسکرین</button>
+      <button class="seg__btn" data-paper="fit" type="button">Screen</button>
     </div>
     <p class="settings__note" id="paperNote"></p>
 
-    <h2 class="settings__h" style="margin-top:18px">تھیم</h2>
-    <div class="seg seg--wide" role="group" aria-label="تھیم">
-      <button class="seg__btn is-on" data-theme="auto" type="button">خودکار</button>
-      <button class="seg__btn" data-theme="light" type="button">روشن</button>
-      <button class="seg__btn" data-theme="dark" type="button">تاریک</button>
+    <h2 class="settings__h" style="margin-top:18px">Theme</h2>
+    <div class="seg seg--wide" role="group" aria-label="Theme">
+      <button class="seg__btn is-on" data-theme="auto" type="button">Auto</button>
+      <button class="seg__btn" data-theme="light" type="button">Light</button>
+      <button class="seg__btn" data-theme="dark" type="button">Dark</button>
     </div>
-    <p class="settings__note">پرنٹ ہمیشہ سفید کاغذ پر ہوگا۔</p>
+    <p class="settings__note">Printing is always black on white.</p>
   </div>
 
   <div class="settings__col">
-    <h2 class="settings__h">پیمائش</h2>
+    <h2 class="settings__h">Sizing</h2>
     <label class="slider">
-      <span>قرآنی خط کا سائز <b id="qsizeVal">34</b></span>
+      <span>Quran text size <b id="qsizeVal">34</b></span>
       <input type="range" id="qsize" min="20" max="60" value="34">
     </label>
     <label class="slider">
-      <span>لکھائی کی جگہ <b id="boxhVal">34</b></span>
+      <span>Writing space <b id="boxhVal">34</b></span>
       <input type="range" id="boxh" min="16" max="90" value="34">
     </label>
     <label class="slider">
-      <span>ایک سطر میں کلمات <b id="perRowVal">خودکار</b></span>
+      <span>Words per row <b id="perRowVal">Auto</b></span>
       <input type="range" id="perRow" min="0" max="8" value="0">
     </label>
   </div>
 
   <div class="settings__col">
-    <h2 class="settings__h">فائلیں</h2>
+    <h2 class="settings__h">Files</h2>
     <div class="stack">
-      <button class="btn btn--ghost" id="exportJson" type="button">جوابات محفوظ کریں (JSON)</button>
-      <button class="btn btn--ghost" id="importJson" type="button">جوابات درآمد کریں</button>
-      <button class="btn btn--ghost" id="cacheAll" type="button">پورا قرآن آف لائن محفوظ کریں</button>
-      <button class="btn btn--ghost btn--danger" id="clearRange" type="button">اس حصے کے جوابات مٹائیں</button>
+      <button class="btn btn--ghost" id="exportJson" type="button">Export answers (JSON)</button>
+      <button class="btn btn--ghost" id="importJson" type="button">Import answers</button>
+      <button class="btn btn--ghost" id="cacheAll" type="button">Save all surahs offline</button>
+      <button class="btn btn--ghost btn--danger" id="clearRange" type="button">Clear answers in range</button>
       <input type="file" id="fileInput" accept="application/json" hidden>
     </div>
   </div>
 </section>
 
-
 <main class="stage">
   <article class="sheet" id="sheet" lang="ar" dir="rtl">
-    <div class="sheet__empty">متن لوڈ ہو رہا ہے…</div>
+    <div class="sheet__empty">Loading…</div>
   </article>
 </main>
 
